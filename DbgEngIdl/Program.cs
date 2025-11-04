@@ -24,24 +24,22 @@ namespace DbgEngIdl
 
             output.Append(header);
 
-            Dictionary<string, string> intDefs;
-            var lineNumber = ExtractForwardDefinitions(output, out intDefs, hpp);
+            var uuids = ExtractForwardDefinitions(output, hpp, out var lineNumber);
 
-            ExtractDefinitions(output, intDefs, hpp, lineNumber);
+            ExtractDefinitions(output, uuids, hpp, lineNumber);
 
             output.Append(footer);
             return output.ToString();
         }
 
-        private static int ExtractForwardDefinitions( StringBuilder output, out Dictionary<string, string> intDefs, string[] hpp )
+        private static Dictionary<string, string> ExtractForwardDefinitions(StringBuilder output, string[] hpp, out int i)
         {
             output.AppendLine("//// Interface forward definitions");
 
-            intDefs = new Dictionary<string, string>();
+            var guids = new Dictionary<string, string>();
             var signature = "typedef interface DECLSPEC_UUID(\"";
 
             var found = false;
-            int i;
             for ( i = 0; i < hpp.Length; i++ )
             {
                 var line = hpp[i];
@@ -52,7 +50,7 @@ namespace DbgEngIdl
                     var typedef = hpp[i + 1].Trim();
                     var name = typedef.Substring(0, typedef.IndexOf('*'));
 
-                    intDefs.Add(name, guid);
+                    guids.Add(name, guid);
 
                     output.AppendLine();
                     output.AppendLine("interface " + name + ";");
@@ -68,10 +66,11 @@ namespace DbgEngIdl
             }
 
             output.AppendLine();
-            return i;
+
+            return guids;
         }
 
-        private static void ExtractDefinitions( StringBuilder output, Dictionary<string, string> intDefs, string[] hpp, int i )
+        private static void ExtractDefinitions( StringBuilder output, Dictionary<string, string> uuids, string[] hpp, int i )
         {
             var constants = new List<KeyValuePair<string, string>>();
 
@@ -96,7 +95,7 @@ namespace DbgEngIdl
                 }
                 else if ( line.StartsWith("DECLARE_INTERFACE_") )
                 {
-                    i = WriteInterfaceDef(output, intDefs, hpp, i);
+                    i = WriteInterfaceDef(output, uuids, hpp, i);
                 }
             }
 
@@ -191,7 +190,7 @@ namespace DbgEngIdl
             return i;
         }
 
-        private static int WriteInterfaceDef( StringBuilder output, Dictionary<string, string> intDefs, string[] hpp, int i )
+        private static int WriteInterfaceDef( StringBuilder output, Dictionary<string, string> uuids, string[] hpp, int i )
         {
             var signature = "DECLARE_INTERFACE_(";
             var line = hpp[i];
@@ -201,7 +200,7 @@ namespace DbgEngIdl
 
             output.AppendLine("[")
                   .AppendLine("    object,")
-                  .AppendLine("    uuid(" + intDefs[name] + "),")
+                  .AppendLine("    uuid(" + uuids[name] + "),")
                   .AppendLine("    helpstring(\"" + name + "\")")
                   .AppendLine("]")
                   .AppendFormat("interface {0} : {1} ", name, super).AppendLine()
