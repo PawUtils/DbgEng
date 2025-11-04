@@ -132,7 +132,7 @@ namespace DbgEngIdl
         {
             var line = hpp[i].Trim();
 
-            var structName = line.Substring(String.Format("typedef {0} _", isUnion ? "union" : "struct").Length);
+            var structName = line.Substring($"typedef {(isUnion ? "union" : "struct")} _".Length);
             if ( structName.EndsWith("{") )
             {
                 structName = structName.Remove(structName.IndexOf(' '));
@@ -143,7 +143,7 @@ namespace DbgEngIdl
                 i += 2;
             }
 
-            output.AppendFormat("typedef {0} {1} {{", (isUnion ? "union" : "struct"), CamelCase(structName))
+            output.Append($"typedef {(isUnion ? "union" : "struct")} {CamelCase(structName)} {{")
                   .AppendLine();
 
             var endSignature = "} " + structName;
@@ -202,7 +202,7 @@ namespace DbgEngIdl
                   .AppendLine("    uuid(" + uuids[name] + "),")
                   .AppendLine("    helpstring(\"" + name + "\")")
                   .AppendLine("]")
-                  .AppendFormat("interface {0} : {1} ", name, super).AppendLine()
+                  .Append($"interface {name} : {super} ").AppendLine()
                   .AppendLine("{")
                   ;
 
@@ -329,11 +329,11 @@ namespace DbgEngIdl
                         {
                             type = type.Substring(1);
                         }
-                        param = String.Format("{0} * sizeof({1})", param, type);
+                        param = $"{param} * sizeof({type})";
                     }
 
                     isArray = true;
-                    result.AppendFormat(",size_is({0})", param);
+                    result.Append($",size_is({param})");
                 }
             }
 
