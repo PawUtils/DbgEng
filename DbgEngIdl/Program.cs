@@ -84,11 +84,11 @@ namespace DbgEngIdl
                         constants.Add((key, value));
                     }
                 }
-                else if ( line.StartsWith("typedef struct ") )
+                else if ( line.StartsWith("typedef struct _") )
                 {
                     i = WriteStructTypeDef(output, hpp, i);
                 }
-                else if ( line.StartsWith("typedef union") )
+                else if ( line.StartsWith("typedef union _") )
                 {
                     i = WriteStructTypeDef(output, hpp, i, true);
                 }
@@ -132,7 +132,7 @@ namespace DbgEngIdl
         {
             var line = hpp[i].Trim();
 
-            var structName = line.Substring($"typedef {(isUnion ? "union" : "struct")} _".Length);
+            var structName = line.Substring((isUnion ? "typedef union _" : "typedef struct _").Length);
             if ( structName.EndsWith("{") )
             {
                 structName = structName.Remove(structName.IndexOf(' '));
