@@ -2,6 +2,6 @@
   <Folder Name="/Solution Items/">
     <File Path="Directory.Build.props" />
   </Folder>
-  <Project Path="DbgEngIdl/SrcGen.csproj" Id="dbb3b947-1ec6-46c2-b0ca-5d31b70b1003" />
+  <Project Path="SrcGen/SrcGen.csproj" Id="dbb3b947-1ec6-46c2-b0ca-5d31b70b1003" />
   <Project Path="Interop.DbgEng/Interop.DbgEng.csproj" Id="c357d88c-6b68-498e-b44a-15692c159743" />
 </Solution>
