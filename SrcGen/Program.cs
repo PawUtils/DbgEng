@@ -62,8 +62,8 @@ namespace SrcGen
 
                 """);
 
-            WriteDefinitions(hpp);
             WriteDefinitions(missing);
+            WriteDefinitions(hpp);
 
             WriteConstants();
             WriteInlineArrays();
