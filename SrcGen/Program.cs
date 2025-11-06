@@ -118,14 +118,8 @@ namespace SrcGen
 
                 var name = define[parts[0]].ToString();
                 var value = define[parts[1]];
-                string comment = GetComment(ref value);
-
-                var type = "UINT32";
-
-                if (value.StartsWith("0x") && value.Trim().Length > 10)
-                {
-                    type = "UINT64";
-                }
+                var comment = GetComment(ref value);
+                var type = (value.StartsWith("0x") && value.Trim().Length > 10) ? "UINT64" : "UINT32";
 
                 Constants[name] = (type, value.ToString(), comment);
 
