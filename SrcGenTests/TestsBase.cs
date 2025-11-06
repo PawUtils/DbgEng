@@ -15,16 +15,7 @@ public class TestsBase
 
         var result = sb.ToString();
         var resultLines = result.AsSpan().Trim().EnumerateLines();
-
-        var commonHeader = """
-            using System.Runtime.CompilerServices;
-            using System.Runtime.InteropServices;
-            
-            namespace Interop.DbgEng;
-            
-
-            """;
-        var expectLines = (commonHeader + expected).AsSpan().Trim().EnumerateLines();
+        var expectLines = (SrcGen.Program.GeneratedHeader + Environment.NewLine + expected).AsSpan().Trim().EnumerateLines();
 
         while (expectLines.MoveNext())
         {

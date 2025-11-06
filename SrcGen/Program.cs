@@ -12,6 +12,14 @@ namespace SrcGen
         private const string ExplicitLayoutAttribute = "[StructLayout(LayoutKind.Explicit)]";
         private const string FieldOffsetAttribute = "[FieldOffset(0)] ";
 
+        public const string GeneratedHeader = """
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+            
+            namespace Interop.DbgEng;
+            
+            """;
+
         readonly TextWriter Output;
         readonly Dictionary<string, string> UUIDs = [];
         readonly Dictionary<string, string> Types = [];
@@ -56,13 +64,7 @@ namespace SrcGen
 
         public void Generate(TextReader hpp, TextReader missing)
         {
-            Output.WriteLine("""
-                using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
-
-                namespace Interop.DbgEng;
-
-                """);
+            Output.WriteLine(GeneratedHeader);
 
             WriteDefinitions(missing);
             WriteDefinitions(hpp);
