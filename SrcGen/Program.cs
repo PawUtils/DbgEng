@@ -301,7 +301,7 @@ namespace SrcGen
             }
 
             WriteIndent(level);
-            Output.WriteLine($"public struct {structName}");
+            Output.WriteLine($"public struct _{structName}");
 
             WriteIndent(level);
             Output.WriteLine('{');
@@ -329,7 +329,7 @@ namespace SrcGen
                 Output.Write(FieldOffsetAttribute);
             }
 
-            Output.WriteLine($"public {structName} {memberName};");
+            Output.WriteLine($"public _{structName} {memberName};");
         }
 
         private void WriteIndent(int level)

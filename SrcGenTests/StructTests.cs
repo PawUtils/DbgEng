@@ -85,39 +85,39 @@ public class StructTests : TestsBase
             {
                 [FieldOffset(0)] public DWORD ContextValue;
 
-                public struct NestedStruct1
+                public struct _NestedStruct1
                 {
                     public BYTE FrameId;
                     public WORD FrameSignature;
                 }
 
-                [FieldOffset(0)] public NestedStruct1 NestedStruct1;
+                [FieldOffset(0)] public _NestedStruct1 NestedStruct1;
 
-                public struct NestedStruct2
+                public struct _NestedStruct2
                 {
                     public BYTE FrameType;
                     public WORD FrameSignature;
                 }
 
-                [FieldOffset(0)] public NestedStruct2 Named;
+                [FieldOffset(0)] public _NestedStruct2 Named;
 
                 [StructLayout(LayoutKind.Explicit)]
-                public struct NestedUnion3
+                public struct _NestedUnion3
                 {
                     [FieldOffset(0)] public BYTE FrameId;
                     [FieldOffset(0)] public WORD FrameSignature;
                 }
 
-                [FieldOffset(0)] public NestedUnion3 NestedUnion3;
+                [FieldOffset(0)] public _NestedUnion3 NestedUnion3;
 
                 [StructLayout(LayoutKind.Explicit)]
-                public struct NestedUnion4
+                public struct _NestedUnion4
                 {
                     [FieldOffset(0)] public BYTE FrameType;
                     [FieldOffset(0)] public WORD FrameSignature;
                 }
 
-                [FieldOffset(0)] public NestedUnion4 Named1;
+                [FieldOffset(0)] public _NestedUnion4 Named1;
             }
             """,
             hppSrc: """
@@ -152,11 +152,11 @@ public class StructTests : TestsBase
             {
 
                 [StructLayout(LayoutKind.Explicit)]
-                public struct NestedUnion1
+                public struct _NestedUnion1
                 {
                     [FieldOffset(0)] public UCHAR I8;
 
-                    public struct NestedStruct1
+                    public struct _NestedStruct1
                     {
                         // Extra NAT indicator for IA64
                         // integer registers.  NAT will
@@ -165,26 +165,26 @@ public class StructTests : TestsBase
                         public BOOL Nat;
                     }
 
-                    [FieldOffset(0)] public NestedStruct1 NestedStruct1;
+                    [FieldOffset(0)] public _NestedStruct1 NestedStruct1;
 
-                    public struct NestedStruct2
+                    public struct _NestedStruct2
                     {
                         public ULONG LowPart;
                         public ULONG HighPart;
                     }
 
-                    [FieldOffset(0)] public NestedStruct2 I64Parts32;
+                    [FieldOffset(0)] public _NestedStruct2 I64Parts32;
 
-                    public struct NestedStruct3
+                    public struct _NestedStruct3
                     {
                         public ULONG64 LowPart;
                         public LONG64 HighPart;
                     }
 
-                    [FieldOffset(0)] public NestedStruct3 F128Parts64;
+                    [FieldOffset(0)] public _NestedStruct3 F128Parts64;
                 }
 
-                public NestedUnion1 NestedUnion1;
+                public _NestedUnion1 NestedUnion1;
                 public ULONG TailOfRawBytes;
                 public ULONG Type;
             }
