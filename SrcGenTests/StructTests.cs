@@ -304,4 +304,31 @@ public class StructTests : TestsBase
             """);
     }
 
+    [Fact]
+    public void TestInlineArray2()
+    {
+        AssertGenerated("""
+            public struct ExceptionRecord64
+            {
+                public ArrayOf15<LONGLONG> ExceptionInformation;
+            }
+
+            public static partial class Constants
+            {
+                public const DWORD EXCEPTION_MAXIMUM_PARAMETERS = 15; // maximum number of exception parameters
+            }
+
+            [InlineArray(15)]
+            public struct ArrayOf15<T> { private T _item; }
+            """,
+            "",
+            missingSrc: """
+            const DWORD EXCEPTION_MAXIMUM_PARAMETERS = 15; // maximum number of exception parameters
+
+            typedef struct _EXCEPTION_RECORD64 {
+                LONGLONG ExceptionInformation[EXCEPTION_MAXIMUM_PARAMETERS];
+            } EXCEPTION_RECORD64, * PEXCEPTION_RECORD64;
+            """);
+    }
+
 }

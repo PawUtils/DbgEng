@@ -264,14 +264,19 @@ namespace SrcGen
                     var memberName = line[(space + 1)..];
                     var bracket = memberName.IndexOf('[');
 
-                    if (bracket > -1)
+                    if (bracket > 0)
                     {
                         var length = memberName[(bracket + 1)..memberName.IndexOf(']')];
                         memberName = memberName[..bracket];
 
-                        InlineArrays.Add(Int32.Parse(length));
+                        if (!Int32.TryParse(length, out var nLength))
+                        {
+                            nLength = Int32.Parse(Constants.GetAlternateLookup<ReadOnlySpan<char>>()[length].value);
+                        }
 
-                        type = $"ArrayOf{length}<{type}>";
+                        InlineArrays.Add(nLength);
+
+                        type = $"ArrayOf{nLength}<{type}>";
                     }
                     else
                     {
