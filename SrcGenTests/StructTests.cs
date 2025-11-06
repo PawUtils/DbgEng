@@ -252,6 +252,21 @@ public class StructTests : TestsBase
     }
 
     [Fact]
+    public void TestConstant3()
+    {
+        AssertGenerated("""
+            public static partial class Constants
+            {
+                public const UINT32 X = 0; // comment
+            }
+            """,
+            hppSrc: """
+            #define X 0 // comment
+            """,
+            "");
+    }
+
+    [Fact]
     public void TestInlineArray1()
     {
         AssertGenerated("""

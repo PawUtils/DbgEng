@@ -15,7 +15,7 @@ namespace SrcGen
 
         readonly TextWriter Output;
         readonly Dictionary<string, string> UUIDs = [];
-        readonly Dictionary<string, (string type, string value)> Constants = [];
+        readonly Dictionary<string, (string type, string value, string comment)> Constants = [];
         readonly HashSet<int> InlineArrays = [];
 
         public Program(TextWriter output)
@@ -118,9 +118,17 @@ namespace SrcGen
             else
             {
                 var name = define[parts[0]].ToString();
-                var value = define[parts[1]].ToString();
+                var value = define[parts[1]];
 
-                Constants[name] = ("UINT32", value);
+                string comment = null;
+                var slash = value.IndexOf("//");
+                if (slash > -1)
+                {
+                    comment = value[(slash + 2)..].ToString();
+                    value = value[..slash];
+                }
+
+                Constants[name] = ("UINT32", value.ToString(), comment);
 
                 return true;
             }
@@ -138,7 +146,14 @@ namespace SrcGen
 
             foreach (var (name, def) in Constants)
             {
-                Output.WriteLine($"    public const {def.type} {name} = {def.value};");
+                if (def.comment is null)
+                {
+                    Output.WriteLine($"    public const {def.type} {name} = {def.value};");
+                }
+                else
+                {
+                    Output.WriteLine($"    public const {def.type} {name} = {def.value.Trim()}; //{def.comment}");
+                }
             }
 
             Output.WriteLine("}");
