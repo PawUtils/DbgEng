@@ -2,7 +2,7 @@
 
 namespace Interop.DbgEng;
 
-internal static partial class DbgEngApi
+internal static partial class DbgEngLib
 {
     [LibraryImport("dbgeng.dll")]
     public static partial void DebugCreate(in Guid interfaceGuid, out IntPtr comObjPtr);
