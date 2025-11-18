@@ -33,7 +33,7 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.DisableRuntimeMarshalling" />
   </ItemGroup>
 
-  <Target Name="GenSrc" AfterTargets="ResolveReferences">
+  <Target Name="GenSrc" DependsOnTargets="ResolveReferences" BeforeTargets="Compile">
     <PropertyGroup>
       <SrcGenExe>$(OutDir)../../SrcGen/$(Configuration)/SrcGen.exe</SrcGenExe>
       <DbgEngHFile>$(MicrosoftDebuggingPlatformDbgEngContent)../build/native/inc/dbgeng.h</DbgEngHFile>
