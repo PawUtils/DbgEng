@@ -14,7 +14,7 @@
 
   <PropertyGroup>
     <PackageId>DumbPrograms.DbgEng</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.20250929</Version>
     <Authors>diryboy</Authors>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>.NET interop library to DbgEng</Title>
