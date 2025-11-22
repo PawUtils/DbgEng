@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
-using System.Xml;
 
 namespace SrcGen
 {
@@ -28,7 +27,9 @@ namespace SrcGen
         readonly Dictionary<string, (string managedType, bool isValueType)> Types = [];
         readonly Dictionary<string, (string type, string value, string? comment, string? remarks)> Constants = [];
         readonly HashSet<int> InlineArrays = [];
-        readonly StringBuilder Remarks = new();
+
+        string? LastRemarks;
+        readonly StringBuilder RemarksBuilder = new();
 
         bool TryGetManagedType(ReadOnlySpan<char> nativeType, out (string name, bool isValueType) managedType)
             => Types.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nativeType, out managedType);
@@ -80,6 +81,39 @@ namespace SrcGen
             WriteInlineArrays();
         }
 
+        private bool TryGetRemarks(ReadOnlySpan<char> line)
+        {
+            if (line.StartsWith("//"))
+            {
+                LastRemarks = null;
+
+                var startsWithUpperCaseLetter = line.Length > 3 && line[2] == ' ' && Char.IsUpper(line[3]);
+
+                if (startsWithUpperCaseLetter)
+                {
+                    RemarksBuilder.AppendLine("/// <br />");
+                }
+
+                RemarksBuilder.Append("/// ");
+                RemarksBuilder.AppendLine(SecurityElement.Escape($"{line[2..].TrimStart()}"));
+
+                if (line.Length > 2 && line[2] is '/' or '-' || startsWithUpperCaseLetter)
+                {
+                    RemarksBuilder.AppendLine("/// <br />");
+                }
+
+                return true;
+            }
+
+            if (RemarksBuilder.Length > 0)
+            {
+                LastRemarks = RemarksBuilder.ToString();
+                RemarksBuilder.Clear();
+            }
+
+            return false;
+        }
+
         private void WriteDefinitions(TextReader hpp)
         {
             const string DECLSPEC_UUID = "typedef interface DECLSPEC_UUID(\"";
@@ -89,26 +123,9 @@ namespace SrcGen
                 var fullLine = hpp.ReadLine()!;
                 var line = fullLine.AsSpan();
 
-                if (line.IsWhiteSpace())
+                if (TryGetRemarks(line))
                 {
-                    Remarks.Clear();
-                }
-                else if (fullLine.StartsWith("//"))
-                {
-                    var startsWithUpperCaseLetter = line.Length > 3 && line[2] == ' ' && Char.IsUpper(line[3]);
-
-                    if (startsWithUpperCaseLetter)
-                    {
-                        Remarks.AppendLine("/// <br />");
-                    }
-
-                    Remarks.Append("/// ");
-                    Remarks.AppendLine(SecurityElement.Escape($"{line[2..].TrimStart()}"));
-
-                    if (line.Length > 2 && line[2] is '/' or '-' || startsWithUpperCaseLetter)
-                    {
-                        Remarks.AppendLine("/// <br />");
-                    }
+                    continue;
                 }
                 else if (fullLine.StartsWith("#define ") || fullLine.StartsWith("const "))
                 {
@@ -154,7 +171,7 @@ namespace SrcGen
                 var comment = GetComment(ref value);
                 var type = (value.StartsWith("0x") && value.Trim().Length > 10) ? "UINT64" : "UINT32";
 
-                Constants[name] = (type, value.ToString(), comment, Remarks.Length > 0 ? Remarks.ToString() : null);
+                Constants[name] = (type, value.ToString(), comment, LastRemarks);
 
                 return true;
             }
@@ -176,7 +193,7 @@ namespace SrcGen
 
                 value = value[..value.IndexOf(';')];
 
-                Constants[name] = (type, value.ToString(), comment, Remarks.Length > 0 ? Remarks.ToString() : null);
+                Constants[name] = (type, value.ToString(), comment, LastRemarks);
 
                 return true;
             }
@@ -226,8 +243,13 @@ namespace SrcGen
             Output.WriteLine();
         }
 
-        private void WriteRemarks(string remarks, int indentLevel = 0)
+        private void WriteRemarks(string? remarks, int indentLevel = 0)
         {
+            if (remarks is null)
+            {
+                return;
+            }
+
             WriteIndent(indentLevel);
             Output.WriteLine("/// <remarks>");
 
@@ -246,10 +268,7 @@ namespace SrcGen
 
         private void WriteStruct(TextReader hpp, string fullLine)
         {
-            if (Remarks.Length > 0)
-            {
-                WriteRemarks(Remarks.ToString());
-            }
+            WriteRemarks(LastRemarks);
 
             var line = fullLine.AsSpan().Trim();
             var isUnion = line["typedef ".Length] == 'u';
@@ -489,10 +508,7 @@ namespace SrcGen
 
         private void WriteInterface(TextReader hpp, string fullLine)
         {
-            if (Remarks.Length > 0)
-            {
-                WriteRemarks(Remarks.ToString());
-            }
+            WriteRemarks(LastRemarks);
 
             // See https://devblogs.microsoft.com/oldnewthing/20041005-00/?p=37653
             // What are the rules?
