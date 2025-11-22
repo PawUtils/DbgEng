@@ -512,8 +512,6 @@ namespace SrcGen
 
         private void WriteInterface(TextReader hpp, string fullLine)
         {
-            WriteRemarks(LastRemarks);
-
             // See https://devblogs.microsoft.com/oldnewthing/20041005-00/?p=37653
             // What are the rules?
             //  * ...
@@ -568,7 +566,11 @@ namespace SrcGen
 
                 if (methodName.IsEmpty)
                 {
-                    if (line.StartsWith("STDMETHOD"))
+                    if (TryGetRemarks(line))
+                    {
+                        continue;
+                    }
+                    else if (line.StartsWith("STDMETHOD"))
                     {
                         var L = line.IndexOf('(') + 1;
                         var R = line.IndexOf(')');
@@ -589,6 +591,8 @@ namespace SrcGen
                             returnType = "void";
                             methodName = line[L..R];
                         }
+
+                        WriteRemarks(LastRemarks, indentLevel: 1);
 
                         Output.WriteLine($"""
                                 {returnType} {methodName}
