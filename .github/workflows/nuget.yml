@@ -8,14 +8,14 @@ jobs:
       id-token: write  # enable GitHub OIDC token issuance for this job
     
     steps:
-      # Build the package
-      - name: Setup .NET Core SDK
+      - uses: actions/checkout@v5
+      - run: PullDocs.bat
+        
+      - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10
           dotnet-quality: ga
-        
-      - uses: actions/checkout@v5
         
       - name: Build
         run: dotnet build -c release
