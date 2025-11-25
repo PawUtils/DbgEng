@@ -3,8 +3,14 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace Interop.DbgEng;
 
+/// <summary>
+/// Constants appear in <c>#define</c> or <c>const</c> in the <c>dbgeng.h</c> file.
+/// </summary>
 public static partial class Constants
 {
+    /// <summary>
+    /// Gets the interface id of the COM interface.
+    /// </summary>
     public static Guid GetIid<IComInterface>()
     {
         var type = typeof(IComInterface);

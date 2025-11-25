@@ -5,6 +5,10 @@ namespace Interop.DbgEng;
 
 public partial interface IDebugClient
 {
+    /// <summary>
+    /// Creates a new client object and returns an interface pointer to it.
+    /// </summary>
+    /// <exception cref="COMException"></exception>
     static IDebugClient Create()
     {
         var hr = DbgEngLib.DebugCreate(Constants.GetIid<IDebugClient>(), out var pDebugClient);
