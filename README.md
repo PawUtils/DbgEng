@@ -20,6 +20,7 @@ After you cloned this repository, run the following commands within it to get th
 
 ```cmd
 git clone --filter=tree:0 --sparse https://github.com/MicrosoftDocs/windows-driver-docs-ddi msdocs
+cd msdocs
 git sparse-checkout set wdk-ddi-src/content/dbgeng
 ```
 
