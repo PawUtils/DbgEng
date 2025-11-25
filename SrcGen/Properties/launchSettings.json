@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SrcGen": {
+      "commandName": "Project",
+      "commandLineArgs": "$(MicrosoftDebuggingPlatformDbgEngContent)../build/native/inc/dbgeng.h\r\n$(ProjectDir)../headers/missing.h\r\nDbgEng.g.cs\r\n$(ProjectDir)../docs/wdk-ddi-src/content/dbgeng"
+    }
+  }
+}

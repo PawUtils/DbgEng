@@ -39,35 +39,31 @@ namespace SrcGen
             Output = output;
         }
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            var dbgEngHeaderFileName = "dbgeng.h";
-            var missingHeaderFileName = "missing.h";
-            var generatedFileName = "DbgEng.g.cs";
-
-            if (args.Length > 0)
+            if (args.Length < 4)
             {
-                dbgEngHeaderFileName = args[0];
-            }
+                Console.WriteLine("""
+                    Need 4 arguments:
 
-            if (args.Length > 1)
-            {
-                missingHeaderFileName = args[1];
-            }
-
-            if (args.Length > 2)
-            {
-                generatedFileName = args[2];
+                    0. Path to the dbgeng.h file.
+                    1. Path to the missing.h file.
+                    2. Path to the generated file.
+                    3. Path to the dir containing the document source files.
+                    """);
+                return -1;
             }
 
             Console.WriteLine($"SrcGen is running at {Environment.CurrentDirectory}");
 
-            using var hpp = File.OpenText(dbgEngHeaderFileName);
-            using var missing = File.Exists(missingHeaderFileName) ? File.OpenText(missingHeaderFileName) : StreamReader.Null;
-            using var output = new StreamWriter(new FileStream(generatedFileName, FileMode.Create));
+            using var hpp = File.OpenText(args[0]);
+            using var missing = File.Exists(args[1]) ? File.OpenText(args[1]) : StreamReader.Null;
+            using var output = new StreamWriter(new FileStream(args[2], FileMode.Create));
 
             var program = new Program(output);
             program.Generate(hpp, missing);
+
+            return 0;
         }
 
         public void Generate(TextReader hpp, TextReader missing)

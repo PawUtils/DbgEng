@@ -7,7 +7,6 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.Debugging.Platform.DbgEng" Version="20250929.1313.0" />
-    <None Include="$(MicrosoftDebuggingPlatformDbgEngContent)../build/native/inc/dbgeng.h" Link="dbgeng.h" CopyToOutputDirectory="Always" />
   </ItemGroup>
   
 </Project>
