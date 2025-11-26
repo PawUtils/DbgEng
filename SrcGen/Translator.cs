@@ -61,16 +61,15 @@ namespace SrcGen
                 {
                     if (RemarksBuilder.Length > 0)
                     {
-                        RemarksBuilder.AppendLine("/// <br />");
+                        RemarksBuilder.AppendLine("<br />");
                     }
                 }
 
-                RemarksBuilder.Append("/// ");
                 RemarksBuilder.AppendLine(SecurityElement.Escape($"{line[2..].TrimStart()}"));
 
                 if (isHorizontalLine)
                 {
-                    RemarksBuilder.AppendLine("/// <br />");
+                    RemarksBuilder.AppendLine("<br />");
                 }
 
                 return true;
@@ -219,32 +218,38 @@ namespace SrcGen
         }
 
         private void WriteRemarks(string? remarks, int indentLevel = 0)
+            => WriteXmlDocument(indentLevel, nameof(remarks), remarks);
+
+        private void WriteSummary(string? summary, int indentLevel = 0)
+            => WriteXmlDocument(indentLevel, nameof(summary), summary);
+
+        private void WriteXmlDocument(int indentLevel, string tag, string? encodedContent)
         {
-            if (remarks is null)
+            if (encodedContent is null)
             {
                 return;
             }
 
             WriteIndent(indentLevel);
-            Output.WriteLine("/// <remarks>");
+            Output.WriteLine($"/// <{tag}>");
 
-            foreach (var line in remarks.AsSpan().EnumerateLines())
+            foreach (var line in encodedContent.AsSpan().EnumerateLines())
             {
                 if (!line.IsEmpty)
                 {
                     WriteIndent(indentLevel);
+
+                    Output.Write("/// ");
                     Output.WriteLine(line);
                 }
             }
 
             WriteIndent(indentLevel);
-            Output.WriteLine("/// </remarks>");
+            Output.WriteLine($"/// </{tag}>");
         }
 
         private void WriteStruct(TextReader hpp, string fullLine)
         {
-            WriteRemarks(LastRemarks);
-
             var line = fullLine.AsSpan().Trim();
             var isUnion = line["typedef ".Length] == 'u';
 
@@ -262,6 +267,13 @@ namespace SrcGen
             {
                 hpp.ReadLine();
             }
+
+            if (Docs.TryGetSummary(structName, out var summary))
+            {
+                WriteSummary(summary);
+            }
+
+            WriteRemarks(LastRemarks);
 
             if (isUnion)
             {
@@ -478,6 +490,11 @@ namespace SrcGen
             var interfaceName = line["DECLARE_INTERFACE_(".Length..line.IndexOf(',')];
             var isCallback = interfaceName.Contains("Callback", StringComparison.Ordinal);
             var wrapperType = isCallback ? "ManagedObjectWrapper" : "ComObjectWrapper";
+
+            if (Docs.TryGetSummary(interfaceName, out var summary))
+            {
+                WriteSummary(summary);
+            }
 
             Output.Write($$"""
                 [GeneratedComInterface(Options = ComInterfaceOptions.{{wrapperType}})]
