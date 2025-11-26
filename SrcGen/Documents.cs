@@ -158,7 +158,9 @@ public class Documents
         {
             if (fullLine.StartsWith(memberHeader))
             {
-                Summaries.Add(lookupName, builder.ToString());
+                var description = builder.ToString();
+
+                Summaries.Add(lookupName, description);
 
                 return fullLine.AsSpan()[memberHeader.Length..].Trim();
             }
@@ -166,7 +168,9 @@ public class Documents
             builder.AppendLine(fullLine);
         }
 
-        Summaries.Add(lookupName, builder.ToString());
+        var description1 = builder.ToString();
+
+        Summaries.Add(lookupName, description1);
 
         return [];
     }
