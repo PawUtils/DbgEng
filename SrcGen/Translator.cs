@@ -25,8 +25,8 @@ namespace SrcGen
         readonly Dictionary<string, (string type, string value, string? comment, string? remarks)> Constants = [];
         readonly HashSet<int> InlineArrays = [];
 
-        string? LastRemarks;
-        readonly StringBuilder RemarksBuilder = new();
+        string? CodeRemarks;
+        readonly StringBuilder CodeRemarksBuilder = new();
 
         bool TryGetManagedType(ReadOnlySpan<char> nativeType, out (string name, bool isValueType) managedType)
             => Types.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(nativeType, out managedType);
@@ -48,25 +48,24 @@ namespace SrcGen
             WriteInlineArrays();
         }
 
-        private bool TryGetRemarks(ReadOnlySpan<char> line)
+        private bool TryGetCodeRemarks(ReadOnlySpan<char> line)
         {
             if (line.StartsWith("//"))
             {
-                LastRemarks = null;
-
-                RemarksBuilder.AppendLine(SecurityElement.Escape($"{line[2..].TrimStart()}"));
+                CodeRemarks = null;
+                CodeRemarksBuilder.AppendLine(SecurityElement.Escape($"{line[2..].TrimStart()}"));
 
                 return true;
             }
 
-            if (RemarksBuilder.Length > 0)
+            if (CodeRemarksBuilder.Length > 0)
             {
-                LastRemarks = RemarksBuilder.ToString();
-                RemarksBuilder.Clear();
+                CodeRemarks = CodeRemarksBuilder.ToString();
+                CodeRemarksBuilder.Clear();
             }
             else
             {
-                LastRemarks = null;
+                CodeRemarks = null;
             }
 
             return false;
@@ -81,7 +80,7 @@ namespace SrcGen
                 var fullLine = hpp.ReadLine()!;
                 var line = fullLine.AsSpan();
 
-                if (TryGetRemarks(line))
+                if (TryGetCodeRemarks(line))
                 {
                     continue;
                 }
@@ -129,7 +128,7 @@ namespace SrcGen
                 var comment = GetComment(ref value);
                 var type = (value.StartsWith("0x") && value.Trim().Length > 10) ? "UINT64" : "UINT32";
 
-                Constants[name] = (type, value.ToString(), comment, LastRemarks);
+                Constants[name] = (type, value.ToString(), comment, CodeRemarks);
 
                 return true;
             }
@@ -151,7 +150,7 @@ namespace SrcGen
 
                 value = value[..value.IndexOf(';')];
 
-                Constants[name] = (type, value.ToString(), comment, LastRemarks);
+                Constants[name] = (type, value.ToString(), comment, CodeRemarks);
 
                 return true;
             }
@@ -284,7 +283,7 @@ namespace SrcGen
                 WriteSummary(summary);
             }
 
-            WriteRemarks(LastRemarks);
+            WriteRemarks(CodeRemarks);
 
             if (isUnion)
             {
@@ -545,7 +544,7 @@ namespace SrcGen
 
                 if (methodName.IsEmpty)
                 {
-                    if (TryGetRemarks(line))
+                    if (TryGetCodeRemarks(line))
                     {
                         continue;
                     }
@@ -584,7 +583,7 @@ namespace SrcGen
                             }
                         }
 
-                        WriteRemarks(LastRemarks, indentLevel: 1);
+                        WriteRemarks(CodeRemarks, indentLevel: 1);
 
                         Output.WriteLine($"""
                                 {returnType} {methodName}
