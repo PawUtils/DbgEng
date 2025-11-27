@@ -198,6 +198,12 @@ public class Documents
         {
             var fieldName = memberLine.AsSpan(memberHeader.Length).Trim();
 
+            var square = fieldName.IndexOf('[');
+            if (square > 0)
+            {
+                fieldName = fieldName[..square];
+            }
+
             return fieldName;
         }
     }
