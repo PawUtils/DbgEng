@@ -205,4 +205,65 @@ public class DocumentTests : TestsBase
         Assert.True(documents.TryGetParameters("IDebugClient", "EndSession", out var parameters));
         Assert.Equal([("Flags", "Lorem ipsum sit domit")], parameters);
     }
+
+    [Fact]
+    public void TestInterfaceFunctionXml()
+    {
+        AssertGeneratedWithDocuments("""
+            /// <summary>
+            /// An interface
+            /// </summary>
+            [GeneratedComInterface(Options = ComInterfaceOptions.ComObjectWrapper)]
+            [Guid("f2df5f53-071f-47bd-9de6-5734c3fed689")]
+            public partial interface ISomeInterface
+            {
+                /// <summary>
+                /// Well ...
+                /// </summary>
+                /// <param name="Flags">
+                /// Lorem ipsum sit domit
+                /// </param>
+                void Boom
+                (
+                    // _In_
+                    UINT32 Flags
+                );
+
+            }
+            """,
+            """
+            typedef interface DECLSPEC_UUID("f2df5f53-071f-47bd-9de6-5734c3fed689")
+                ISomeInterface* PSOME_INTERFACE;
+            
+            #undef INTERFACE
+            #define INTERFACE ISomeInterface
+            DECLARE_INTERFACE_(ISomeInterface, IUnknown)
+            {
+                // ISomeInterface.
+                STDMETHOD(Boom)(
+                    THIS_
+                    _In_ UINT32 Flags
+                    ) PURE;
+            };
+            """,
+            [
+            """
+            ---
+            UID: NF:dbgeng.ISomeInterface.Boom
+            description: Well ...
+            ---
+
+            ### -param Flags [in]
+
+            Lorem ipsum sit domit
+            """,
+            """
+            ---
+            UID: NN:dbgeng.ISomeInterface
+            description: An interface
+            ---
+            """
+            ]);
+    }
+
 }

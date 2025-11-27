@@ -54,23 +54,7 @@ namespace SrcGen
             {
                 LastRemarks = null;
 
-                var isHorizontalLine = line.Length > 2 && line[2] is '/' or '-';
-                var startsWithCapitalLetter = line.Length > 3 && line[2] == ' ' && Char.IsUpper(line[3]);
-
-                if (isHorizontalLine || startsWithCapitalLetter)
-                {
-                    if (RemarksBuilder.Length > 0)
-                    {
-                        RemarksBuilder.AppendLine("<br />");
-                    }
-                }
-
                 RemarksBuilder.AppendLine(SecurityElement.Escape($"{line[2..].TrimStart()}"));
-
-                if (isHorizontalLine)
-                {
-                    RemarksBuilder.AppendLine("<br />");
-                }
 
                 return true;
             }
@@ -223,7 +207,10 @@ namespace SrcGen
         private void WriteSummary(string? summary, int indentLevel = 0)
             => WriteXmlDocument(indentLevel, nameof(summary), summary);
 
-        private void WriteXmlDocument(int indentLevel, string tag, string? encodedContent)
+        private void WriteParam(string name, string? summary, int indentLevel = 0)
+            => WriteXmlDocument(indentLevel, "param", summary, $"name=\"{name}\"");
+
+        private void WriteXmlDocument(int indentLevel, string tagName, string? encodedContent, string? attributes = null)
         {
             if (encodedContent is null)
             {
@@ -231,21 +218,45 @@ namespace SrcGen
             }
 
             WriteIndent(indentLevel);
-            Output.WriteLine($"/// <{tag}>");
+            if (attributes is null)
+            {
+                Output.WriteLine($"/// <{tagName}>");
+            }
+            else
+            {
+                Output.WriteLine($"/// <{tagName} {attributes}>");
+            }
+
+            var hasContents = false;
 
             foreach (var line in encodedContent.AsSpan().EnumerateLines())
             {
                 if (!line.IsEmpty)
                 {
-                    WriteIndent(indentLevel);
+                    var isHorizontalLine = line[0] is '/' or '-' or '#';
 
+                    if (hasContents && (isHorizontalLine || Char.IsUpper(line[0])))
+                    {
+                        WriteIndent(indentLevel);
+                        Output.WriteLine("/// <br />");
+                    }
+
+                    WriteIndent(indentLevel);
                     Output.Write("/// ");
                     Output.WriteLine(line);
+
+                    hasContents = true;
+
+                    if (isHorizontalLine)
+                    {
+                        WriteIndent(indentLevel);
+                        Output.WriteLine("/// <br />");
+                    }
                 }
             }
 
             WriteIndent(indentLevel);
-            Output.WriteLine($"/// </{tag}>");
+            Output.WriteLine($"/// </{tagName}>");
         }
 
         private void WriteStruct(TextReader hpp, string fullLine)
@@ -557,6 +568,19 @@ namespace SrcGen
                         {
                             returnType = "void";
                             methodName = line[L..R];
+                        }
+
+                        if (Docs.TryGetSummary(interfaceName, methodName, out var methodSummary))
+                        {
+                            WriteSummary(methodSummary, indentLevel: 1);
+                        }
+
+                        if (Docs.TryGetParameters(interfaceName, methodName, out var paramters))
+                        {
+                            foreach (var p in paramters)
+                            {
+                                WriteParam(p.name, p.summary, indentLevel: 1);
+                            }
                         }
 
                         WriteRemarks(LastRemarks, indentLevel: 1);

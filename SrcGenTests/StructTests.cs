@@ -439,6 +439,9 @@ public class StructTests : TestsBase
                 /// -------
                 /// <br />
                 /// <br />
+                /// ###
+                /// <br />
+                /// <br />
                 /// In
                 /// <br />
                 /// Out
@@ -449,6 +452,7 @@ public class StructTests : TestsBase
             hppSrc: """
             /////////
             //-------
+            //###
             // In
             // Out
             #define X 0x100000000 // comment
