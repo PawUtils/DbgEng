@@ -130,7 +130,7 @@ public class Documents
 
         if (reader.SeekLineWithPrefix(memberHeader) is string memberLine)
         {
-            var parameterName = memberLine.AsSpan(memberHeader.Length).Trim();
+            var parameterName = getParameterName(memberLine);
             var lookup = Parameters.GetAlternateLookup<ReadOnlySpan<char>>();
 
             if (!lookup.TryGetValue(functionName, out var parameters))
@@ -140,18 +140,25 @@ public class Documents
 
             do
             {
-                var space = parameterName.IndexOf(' ');
-                if (space > 0)
-                {
-                    parameterName = parameterName[..space];
-                }
-
                 var parameterNameString = parameterName.ToString();
-                var description = ParseMemberDescription(reader, memberHeader, out parameterName);
+                var description = ParseMemberDescription(reader, memberHeader, getParameterName, out parameterName);
 
                 parameters.Add((parameterNameString, description));
             }
             while (!parameterName.IsEmpty);
+        }
+
+        static ReadOnlySpan<char> getParameterName(string memberLine)
+        {
+            var parameterName = memberLine.AsSpan(memberHeader.Length).Trim();
+
+            var space = parameterName.IndexOf(' ');
+            if (space > 0)
+            {
+                parameterName = parameterName[..space];
+            }
+
+            return parameterName;
         }
     }
 
@@ -164,26 +171,33 @@ public class Documents
 
         if (reader.SeekLineWithPrefix(memberHeader) is string memberLine)
         {
-            var fieldName = memberLine.AsSpan(memberHeader.Length).Trim();
-            var memberLookup = MemberSummaries.GetAlternateLookup<ReadOnlySpan<char>>();
+            var fieldName = getFieldName(memberLine);
+            var lookup = MemberSummaries.GetAlternateLookup<ReadOnlySpan<char>>();
 
-            if (!memberLookup.TryGetValue(structName, out var fields))
+            if (!lookup.TryGetValue(structName, out var fields))
             {
-                memberLookup[structName] = fields = [];
+                lookup[structName] = fields = [];
             }
 
             do
             {
                 var fieldNameString = fieldName.ToString();
-                var description = ParseMemberDescription(reader, memberHeader, out fieldName);
+                var description = ParseMemberDescription(reader, memberHeader, getFieldName, out fieldName);
 
                 fields.Add(fieldNameString, description);
             }
             while (!fieldName.IsEmpty);
         }
+
+        static ReadOnlySpan<char> getFieldName(string memberLine)
+        {
+            var fieldName = memberLine.AsSpan(memberHeader.Length).Trim();
+
+            return fieldName;
+        }
     }
 
-    private static string ParseMemberDescription(TextReader reader, string memberHeader, out ReadOnlySpan<char> memberName)
+    private static string ParseMemberDescription(TextReader reader, string memberHeader, Func<string, ReadOnlySpan<char>> getMemberName, out ReadOnlySpan<char> memberName)
     {
         var builder = new DefaultInterpolatedStringHandler(512, 0);
 
@@ -191,7 +205,7 @@ public class Documents
         {
             if (fullLine.StartsWith(memberHeader))
             {
-                memberName = fullLine.AsSpan()[memberHeader.Length..].Trim();
+                memberName = getMemberName(fullLine);
                 goto exit;
             }
             else if (fullLine.StartsWith("## ") || fullLine.StartsWith("# "))
