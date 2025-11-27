@@ -185,7 +185,7 @@ public class Documents
 
     private static string ParseMemberDescription(TextReader reader, string memberHeader, out ReadOnlySpan<char> memberName)
     {
-        var builder = new DefaultInterpolatedStringHandler(512, 1);
+        var builder = new DefaultInterpolatedStringHandler(512, 0);
 
         while (reader.ReadLine() is string fullLine)
         {
