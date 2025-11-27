@@ -22,6 +22,40 @@ public class DocumentTests : TestsBase
     }
 
     [Fact]
+    public void TestInterfaceXml()
+    {
+        AssertGeneratedWithDocuments("""
+            /// <summary>
+            /// An interface
+            /// </summary>
+            [GeneratedComInterface(Options = ComInterfaceOptions.ComObjectWrapper)]
+            [Guid("f2df5f53-071f-47bd-9de6-5734c3fed689")]
+            public partial interface ISomeInterface
+            {
+            }
+            """,
+            """
+            typedef interface DECLSPEC_UUID("f2df5f53-071f-47bd-9de6-5734c3fed689")
+                ISomeInterface* PSOME_INTERFACE;
+            
+            #undef INTERFACE
+            #define INTERFACE ISomeInterface
+            DECLARE_INTERFACE_(ISomeInterface, IUnknown)
+            {
+                // ISomeInterface.
+            };
+            """,
+            [
+            """
+            ---
+            UID: NN:dbgeng.ISomeInterface
+            description: An interface
+            ---
+            """
+            ]);
+    }
+
+    [Fact]
     public void TestStruct()
     {
         var documents = new Documents();
@@ -54,6 +88,38 @@ public class DocumentTests : TestsBase
 
         Assert.True(documents.TryGetSummary(members[1], out summary));
         Assert.Equal("Je <a href=\"wewe\">ha jit mi</a>.", summary);
+    }
+
+    [Fact]
+    public void TestStructXml()
+    {
+        AssertGeneratedWithDocuments("""
+            /// <summary>
+            /// Blah la la
+            /// </summary>
+            /// <remarks>
+            /// Structure for querying breakpoint information
+            /// all at once.
+            /// </remarks>
+            public struct DebugBreakpointParameters
+            {
+            }
+            """,
+            """
+            // Structure for querying breakpoint information
+            // all at once.
+            typedef struct _DEBUG_BREAKPOINT_PARAMETERS
+            {
+            } DEBUG_BREAKPOINT_PARAMETERS, *PDEBUG_BREAKPOINT_PARAMETERS;
+            """,
+            [
+            """
+            ---
+            UID: NS:dbgeng._DEBUG_BREAKPOINT_PARAMETERS
+            description: Blah la la
+            ---
+            """
+            ]);
     }
 
     [Fact]
