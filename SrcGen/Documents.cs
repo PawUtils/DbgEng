@@ -177,7 +177,7 @@ public class Documents
                 var fieldNameString = fieldName.ToString();
                 var description = ParseMemberDescription(reader, memberHeader, out fieldName);
 
-                fields.Add(fieldNameString, description.Trim());
+                fields.Add(fieldNameString, description);
             }
             while (!fieldName.IsEmpty);
         }
@@ -192,7 +192,7 @@ public class Documents
             if (fullLine.StartsWith(memberHeader))
             {
                 memberName = fullLine.AsSpan()[memberHeader.Length..].Trim();
-                return builder.ToStringAndClear();
+                goto exit;
             }
             else if (fullLine.StartsWith("## ") || fullLine.StartsWith("# "))
             {
@@ -204,7 +204,12 @@ public class Documents
         }
 
         memberName = [];
-        return builder.ToStringAndClear();
+
+    exit:
+        var result = builder.Text.Trim().ToString();
+
+        builder.Clear();
+        return result;
     }
 
     private void AddMemberSummary(ReadOnlySpan<char> parent, string child, string summary)
