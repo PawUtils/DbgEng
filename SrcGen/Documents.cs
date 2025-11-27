@@ -149,7 +149,7 @@ public class Documents
                 var parameterNameString = parameterName.ToString();
                 var description = ParseMemberDescription(reader, memberHeader, out parameterName);
 
-                parameters.Add((parameterNameString, description.Trim()));
+                parameters.Add((parameterNameString, description));
             }
             while (!parameterName.IsEmpty);
         }
