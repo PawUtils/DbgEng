@@ -20,7 +20,7 @@ public class StructTests : TestsBase
     public void TestStruct1()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 public ULONG64 Base;
                 public ULONG64 Size;
@@ -40,7 +40,7 @@ public class StructTests : TestsBase
     public void TestStruct2()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 public ULONG64 Base;
                 public ULONG64 Size;
@@ -60,7 +60,7 @@ public class StructTests : TestsBase
     public void TestStruct3()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 public ULONG64 Base; // comment
                 public ULONG64 Size;
@@ -80,7 +80,7 @@ public class StructTests : TestsBase
     public void TestStruct4()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 [MarshalAs(UnmanagedType.LPWStr)]
                 public string Base; // comment
@@ -99,7 +99,7 @@ public class StructTests : TestsBase
     public void TestStruct5()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 public IntPtr/*PVOID*/ Base; // comment
             }
@@ -117,7 +117,7 @@ public class StructTests : TestsBase
     public void TestStruct6()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 public ULONG64 Base;
                 // some comments
@@ -142,7 +142,7 @@ public class StructTests : TestsBase
             /// <remarks>
             /// haha
             /// </remarks>
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 public ULONG64 Base;
                 public ULONG64 Size;
@@ -163,12 +163,12 @@ public class StructTests : TestsBase
     public void TestStructsRef1()
     {
         AssertGeneratedWithMissing("""
-            public struct REF
+            public partial struct REF
             {
                 public ULONG64 Size;
             }
 
-            public struct B
+            public partial struct B
             {
                 public REF Base; // comment
             }
@@ -192,11 +192,11 @@ public class StructTests : TestsBase
     {
         AssertGeneratedWithMissing("""
             [StructLayout(LayoutKind.Explicit)]
-            public struct InlineFrameContext
+            public partial struct InlineFrameContext
             {
                 [FieldOffset(0)] public DWORD ContextValue;
 
-                public struct _NestedStruct1
+                public partial struct _NestedStruct1
                 {
                     public BYTE FrameId;
                     public WORD FrameSignature;
@@ -204,7 +204,7 @@ public class StructTests : TestsBase
 
                 [FieldOffset(0)] public _NestedStruct1 NestedStruct1;
 
-                public struct _NestedStruct2
+                public partial struct _NestedStruct2
                 {
                     public BYTE FrameType;
                     public WORD FrameSignature;
@@ -213,7 +213,7 @@ public class StructTests : TestsBase
                 [FieldOffset(0)] public _NestedStruct2 Named;
 
                 [StructLayout(LayoutKind.Explicit)]
-                public struct _NestedUnion3
+                public partial struct _NestedUnion3
                 {
                     [FieldOffset(0)] public BYTE FrameId;
                     [FieldOffset(0)] public WORD FrameSignature;
@@ -222,7 +222,7 @@ public class StructTests : TestsBase
                 [FieldOffset(0)] public _NestedUnion3 NestedUnion3;
 
                 [StructLayout(LayoutKind.Explicit)]
-                public struct _NestedUnion4
+                public partial struct _NestedUnion4
                 {
                     [FieldOffset(0)] public BYTE FrameType;
                     [FieldOffset(0)] public WORD FrameSignature;
@@ -259,15 +259,15 @@ public class StructTests : TestsBase
     public void TestNested2()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugValue
+            public partial struct DebugValue
             {
 
                 [StructLayout(LayoutKind.Explicit)]
-                public struct _NestedUnion1
+                public partial struct _NestedUnion1
                 {
                     [FieldOffset(0)] public UCHAR I8;
 
-                    public struct _NestedStruct1
+                    public partial struct _NestedStruct1
                     {
                         // Extra NAT indicator for IA64
                         // integer registers.  NAT will
@@ -278,7 +278,7 @@ public class StructTests : TestsBase
 
                     [FieldOffset(0)] public _NestedStruct1 NestedStruct1;
 
-                    public struct _NestedStruct2
+                    public partial struct _NestedStruct2
                     {
                         public ULONG LowPart;
                         public ULONG HighPart;
@@ -286,7 +286,7 @@ public class StructTests : TestsBase
 
                     [FieldOffset(0)] public _NestedStruct2 I64Parts32;
 
-                    public struct _NestedStruct3
+                    public partial struct _NestedStruct3
                     {
                         public ULONG64 LowPart;
                         public LONG64 HighPart;
@@ -529,7 +529,7 @@ public class StructTests : TestsBase
     public void TestInlineArray1()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 public ArrayOf3<ULONG64> Base;
                 public ULONG64 Size;
@@ -552,7 +552,7 @@ public class StructTests : TestsBase
     public void TestInlineArray2()
     {
         AssertGeneratedWithMissing("""
-            public struct ExceptionRecord64
+            public partial struct ExceptionRecord64
             {
                 public ArrayOf15<LONGLONG> ExceptionInformation;
             }

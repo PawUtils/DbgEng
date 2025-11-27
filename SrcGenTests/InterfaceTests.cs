@@ -387,7 +387,7 @@ public class InterfaceTests : TestsBase
     public void TestPointerParam4()
     {
         AssertGeneratedWithMissing("""
-            public struct DebugOffsetRegion
+            public partial struct DebugOffsetRegion
             {
                 public ULONG64 Base;
                 public ULONG64 Size;

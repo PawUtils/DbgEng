@@ -98,7 +98,7 @@ public class DocumentTests : TestsBase
             /// Structure for querying breakpoint information
             /// all at once.
             /// </remarks>
-            public struct DebugBreakpointParameters
+            public partial struct DebugBreakpointParameters
             {
             }
             """,

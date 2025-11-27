@@ -295,7 +295,7 @@ namespace SrcGen
             Types[$"{structName}"] = (generatedStructName, isValueType: true);
             Types[$"P{structName}"] = (generatedStructName, isValueType: true);
 
-            Output.WriteLine($"public struct {generatedStructName}");
+            Output.WriteLine($"public partial struct {generatedStructName}");
             Output.WriteLine("{");
 
             WriteStructBody(hpp, 0, isUnion);
@@ -427,7 +427,7 @@ namespace SrcGen
             }
 
             WriteIndent(level);
-            Output.WriteLine($"public struct _{structName}");
+            Output.WriteLine($"public partial struct _{structName}");
 
             WriteIndent(level);
             Output.WriteLine('{');
