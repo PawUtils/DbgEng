@@ -263,6 +263,55 @@ public class DocumentTests : TestsBase
     }
 
     [Fact]
+    public void TestAnchorsXml()
+    {
+        AssertGeneratedWithDocuments("""
+            /// <summary>
+            /// Blah la la
+            /// </summary>
+            /// <remarks>
+            /// Structure for querying breakpoint information
+            /// all at once.
+            /// </remarks>
+            public partial struct DebugBreakpointParameters
+            {
+                /// <summary>
+                /// Describes <a href="https://learn.microsoft.com/">A</a>
+                /// </summary>
+                public ULONG A;
+                /// <summary>
+                /// Tells <a href="https://learn.microsoft.com/ref">B</a>
+                /// </summary>
+                public LONG  B;
+            }
+            """,
+            """
+            // Structure for querying breakpoint information
+            // all at once.
+            typedef struct _DEBUG_BREAKPOINT_PARAMETERS
+            {
+                ULONG A;
+                LONG  B;
+            } DEBUG_BREAKPOINT_PARAMETERS, *PDEBUG_BREAKPOINT_PARAMETERS;
+            """,
+            [
+            """
+            ---
+            UID: NS:dbgeng._DEBUG_BREAKPOINT_PARAMETERS
+            description: Blah la la
+            ---
+            ### -field A
+
+            Describes [A](/)
+
+            ### -field B
+            
+            Tells <a href="/ref">B</a>
+            """
+            ]);
+    }
+
+    [Fact]
     public void TestIgnoreDllExport()
     {
         var documents = new Documents();

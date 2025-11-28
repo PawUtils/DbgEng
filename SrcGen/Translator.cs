@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Security;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SrcGen
 {
@@ -276,7 +277,9 @@ namespace SrcGen
                     Output.Write("/// ");
                 }
 
-                Output.WriteLine(line);
+                var translatedLine = translateLinks(line);
+
+                Output.WriteLine(translatedLine);
 
                 if (isHorizontalLine)
                 {
@@ -289,6 +292,32 @@ namespace SrcGen
 
             WriteIndent(indentLevel);
             Output.WriteLine($"/// </{tagName}>");
+
+            static ReadOnlySpan<char> translateLinks(ReadOnlySpan<char> line)
+            {
+                if (line.Contains("<a href=\"/", StringComparison.Ordinal))
+                {
+                    line = HtmlAnchorRegex.Replace(line.ToString(), match =>
+                    {
+                        var url = match.Groups[1].ValueSpan;
+
+                        return $"<a href=\"https://learn.microsoft.com/{url}\"";
+                    });
+                }
+
+                if (line.Contains("](/", StringComparison.Ordinal))
+                {
+                    line = MarkdownAnchorRegex.Replace(line.ToString(), match =>
+                    {
+                        var text = match.Groups[1].ValueSpan;
+                        var url = match.Groups[2].ValueSpan;
+
+                        return $"<a href=\"https://learn.microsoft.com/{url}\">{text}</a>";
+                    });
+                }
+
+                return line;
+            }
         }
 
         private void WriteStruct(TextReader hpp, string fullLine)
@@ -874,5 +903,11 @@ namespace SrcGen
 
             return result.ToStringAndClear();
         }
+
+        [GeneratedRegex(@"<a href=""/(.*?)""")]
+        private static partial Regex HtmlAnchorRegex { get; }
+
+        [GeneratedRegex(@"\[(.*?)\]\(/(.*?)\)")]
+        private static partial Regex MarkdownAnchorRegex { get; }
     }
 }
