@@ -234,54 +234,57 @@ namespace SrcGen
 
             foreach (var line in encodedContent.AsSpan().EnumerateLines())
             {
-                if (!line.IsEmpty)
+                if (line.IsEmpty)
                 {
-                    WriteIndent(indentLevel);
-                    Output.Write("/// ");
+                    continue;
+                }
 
-                    if (line.StartsWith("```"))
+                WriteIndent(indentLevel);
+                Output.Write("/// ");
+
+                if (line.StartsWith("```"))
+                {
+                    if (!inCodeBlock)
                     {
-                        if (!inCodeBlock)
-                        {
-                            Output.WriteLine("<code>");
-                        }
-                        else
-                        {
-                            Output.WriteLine("</code>");
-                        }
-
-                        inCodeBlock = !inCodeBlock;
+                        Output.WriteLine("<code>");
                     }
                     else
                     {
-                        if (!inCodeBlock)
-                        {
-                            var isHorizontalLine = line[0] is '/' or '-' or '#';
-
-                            if (hasContents && (isHorizontalLine || Char.IsUpper(line[0])))
-                            {
-                                Output.WriteLine("<br />");
-
-                                WriteIndent(indentLevel);
-                                Output.Write("/// ");
-                            }
-
-                            Output.WriteLine(line);
-
-                            if (isHorizontalLine)
-                            {
-                                WriteIndent(indentLevel);
-                                Output.WriteLine("/// <br />");
-                            }
-                        }
-                        else
-                        {
-                            Output.WriteLine(SecurityElement.Escape(line.ToString()));
-                        }
+                        Output.WriteLine("</code>");
                     }
 
+                    inCodeBlock = !inCodeBlock;
                     hasContents = true;
+
+                    continue;
                 }
+
+                if (inCodeBlock)
+                {
+                    Output.WriteLine(SecurityElement.Escape(line.ToString()));
+                }
+                else
+                {
+                    var isHorizontalLine = line[0] is '/' or '-' or '#';
+
+                    if (hasContents && (isHorizontalLine || Char.IsUpper(line[0])))
+                    {
+                        Output.WriteLine("<br />");
+
+                        WriteIndent(indentLevel);
+                        Output.Write("/// ");
+                    }
+
+                    Output.WriteLine(line);
+
+                    if (isHorizontalLine)
+                    {
+                        WriteIndent(indentLevel);
+                        Output.WriteLine("/// <br />");
+                    }
+                }
+
+                hasContents = true;
             }
 
             WriteIndent(indentLevel);
