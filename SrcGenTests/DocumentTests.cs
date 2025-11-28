@@ -336,6 +336,9 @@ public class DocumentTests : TestsBase
                 /// </param>
                 /// <param name="Args">
                 /// Additional args
+                /// <code>
+                /// 1 &lt; 0 &amp;&amp; a[0] &gt; &apos;2&apos;
+                /// </code>
                 /// </param>
                 void Boom
                 (
@@ -378,6 +381,10 @@ public class DocumentTests : TestsBase
             ### -param ...
 
             Additional args
+
+            ```
+            1 < 0 && a[0] > '2'
+            ```
 
             """,
             """
