@@ -483,12 +483,9 @@ public class StructTests : TestsBase
                 /// <remarks>
                 /// ///////
                 /// <br />
-                /// <br />
                 /// -------
                 /// <br />
-                /// <br />
                 /// ###
-                /// <br />
                 /// <br />
                 /// In
                 /// <br />

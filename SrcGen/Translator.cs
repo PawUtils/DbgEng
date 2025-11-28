@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Security;
 using System.Text;
@@ -230,7 +231,7 @@ namespace SrcGen
                 Output.WriteLine($"/// <{tagName} {attributes}>");
             }
 
-            var hasContents = false;
+            var autoNewLine = false;
             var inCodeBlock = false;
 
             foreach (var line in encodedContent.AsSpan().EnumerateLines())
@@ -255,21 +256,18 @@ namespace SrcGen
                     }
 
                     inCodeBlock = !inCodeBlock;
-                    hasContents = true;
                     continue;
                 }
 
                 if (inCodeBlock)
                 {
                     Output.WriteLine(SecurityElement.Escape(line.ToString()));
-
-                    Debug.Assert(hasContents);
                     continue;
                 }
 
                 var isHorizontalLine = line[0] is '/' or '-' or '#';
 
-                if (hasContents && (isHorizontalLine || Char.IsUpper(line[0])))
+                if (autoNewLine && (isHorizontalLine || Char.IsUpper(line[0])))
                 {
                     Output.WriteLine("<br />");
 
@@ -278,30 +276,87 @@ namespace SrcGen
                 }
 
                 var translatedLine = translateLinks(line);
+                translatedLine = translateTables(translatedLine, out var disableAutoNewLine);
 
                 Output.WriteLine(translatedLine);
 
-                if (isHorizontalLine)
+                if (disableAutoNewLine)
+                {
+                    autoNewLine = false;
+                }
+                else if (isHorizontalLine)
                 {
                     WriteIndent(indentLevel);
                     Output.WriteLine("/// <br />");
+                    autoNewLine = false;
                 }
-
-                hasContents = true;
+                else
+                {
+                    autoNewLine = true;
+                }
             }
 
             WriteIndent(indentLevel);
             Output.WriteLine($"/// </{tagName}>");
 
+            static ReadOnlySpan<char> translateTables(ReadOnlySpan<char> line, out bool disableAutoNewLine)
+            {
+                const string beginTable = "<br />============= Begin Table =============<br />";
+                const string endTable = "============== End Table ==============<br />";
+                const string endRow = "<br />---------------------------------------<br />";
+
+                disableAutoNewLine = false;
+
+                if (line.ContainsAny(TableColumnTagSearchValues))
+                {
+                    disableAutoNewLine = true;
+                    return TableColumTagRegex.Replace(line.ToString(), match => match.ValueSpan[1] == '/' ? " | " : "");
+                }
+                else if (line.SequenceEqual("<tr>"))
+                {
+                    return [];
+                }
+                else if (line.SequenceEqual("</tr>"))
+                {
+                    return endRow;
+                }
+                else if (line.SequenceEqual("<table>"))
+                {
+                    return beginTable;
+                }
+                else if (line.SequenceEqual("</table>"))
+                {
+                    return endTable;
+                }
+
+                return line;
+            }
+
             static ReadOnlySpan<char> translateLinks(ReadOnlySpan<char> line)
             {
-                if (line.Contains("<a href=\"/", StringComparison.Ordinal))
+                if (line.Contains("<a ", StringComparison.Ordinal))
                 {
                     line = HtmlAnchorRegex.Replace(line.ToString(), match =>
                     {
-                        var url = match.Groups[1].ValueSpan;
+                        var name = match.Groups[1].ValueSpan;
+                        if (name.SequenceEqual("href"))
+                        {
+                            var url = match.Groups[2].ValueSpan;
+                            if (url.StartsWith('/'))
+                            {
+                                var text = match.Groups[3].ValueSpan;
 
-                        return $"<a href=\"https://learn.microsoft.com/{url}\"";
+                                return $"<a href=\"https://learn.microsoft.com{url}\">{text}</a>";
+                            }
+                            else
+                            {
+                                return match.Value;
+                            }
+                        }
+                        else
+                        {
+                            return "";
+                        }
                     });
                 }
 
@@ -904,10 +959,15 @@ namespace SrcGen
             return result.ToStringAndClear();
         }
 
-        [GeneratedRegex(@"<a href=""/(.*?)""")]
+        [GeneratedRegex(@"<a (\w+)=""(.*?)"".*?>(.*?)</a>")]
         private static partial Regex HtmlAnchorRegex { get; }
 
         [GeneratedRegex(@"\[(.*?)\]\(/(.*?)\)")]
         private static partial Regex MarkdownAnchorRegex { get; }
+
+        private static readonly SearchValues<string> TableColumnTagSearchValues = SearchValues.Create(["<td", "</td", "<th", "</th"], StringComparison.Ordinal);
+
+        [GeneratedRegex(@"</?t[dh].*?>")]
+        private static partial Regex TableColumTagRegex { get; }
     }
 }

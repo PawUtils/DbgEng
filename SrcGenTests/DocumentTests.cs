@@ -283,6 +283,14 @@ public class DocumentTests : TestsBase
                 /// Tells <a href="https://learn.microsoft.com/ref">B</a>
                 /// </summary>
                 public LONG  B;
+                /// <summary>
+                /// Goes <a href="https://localhost">C</a>
+                /// </summary>
+                public LONG  C;
+                /// <summary>
+                /// Hides 
+                /// </summary>
+                public INT   D;
             }
             """,
             """
@@ -292,6 +300,8 @@ public class DocumentTests : TestsBase
             {
                 ULONG A;
                 LONG  B;
+                LONG  C;
+                INT   D;
             } DEBUG_BREAKPOINT_PARAMETERS, *PDEBUG_BREAKPOINT_PARAMETERS;
             """,
             [
@@ -307,6 +317,72 @@ public class DocumentTests : TestsBase
             ### -field B
             
             Tells <a href="/ref">B</a>
+
+            ### -field C
+            
+            Goes <a href="https://localhost">C</a>
+            
+            ### -field D
+            
+            Hides <a id="D"></a>
+            """
+            ]);
+    }
+
+    [Fact]
+    public void TestTableXml()
+    {
+        AssertGeneratedWithDocuments("""
+            /// <summary>
+            /// Blah la la
+            /// </summary>
+            public partial struct DebugBreakpointParameters
+            {
+                /// <summary>
+                /// <br />============= Begin Table =============<br />
+                ///
+                ///
+                /// A | 
+                ///
+                /// = | 
+                /// <br />---------------------------------------<br />
+                /// 
+                /// 
+                /// # | 
+                /// - | 
+                /// <br />---------------------------------------<br />
+                /// ============== End Table ==============<br />
+                /// </summary>
+                public ULONG A;
+            }
+            """,
+            """
+            typedef struct _DEBUG_BREAKPOINT_PARAMETERS
+            {
+                ULONG A;
+            } DEBUG_BREAKPOINT_PARAMETERS, *PDEBUG_BREAKPOINT_PARAMETERS;
+            """,
+            [
+            """
+            ---
+            UID: NS:dbgeng._DEBUG_BREAKPOINT_PARAMETERS
+            description: Blah la la
+            ---
+            ### -field A
+
+            <table>
+            <tr>
+            <th>
+            A</th>
+            <th>
+            =</th>
+            </tr>
+            <tr>
+            <td width="3">
+            #</td><td>
+            -</td>
+            </tr>
+            </table>
             """
             ]);
     }
