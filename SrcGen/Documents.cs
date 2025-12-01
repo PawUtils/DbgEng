@@ -1,9 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace SrcGen;
 
-public class Documents
+public partial class Documents
 {
     const string UidPrefix = "UID:";
     const string UidDbgEngPrefix = "Nx:dbgeng.";
@@ -13,6 +15,7 @@ public class Documents
     readonly Dictionary<string, string> TypeSummaries = [];
     readonly Dictionary<string, Dictionary<string, string>> MemberSummaries = [];
     readonly Dictionary<string, List<(bool isOut, string name, string summary)>> Parameters = [];
+    readonly Dictionary<string, HashSet<string>> ReturnCodes = [];
 
     public static Documents Empty { get; } = new();
 
@@ -57,6 +60,18 @@ public class Documents
         return false;
     }
 
+    public bool TryGetReturnCodes(ReadOnlySpan<char> type, ReadOnlySpan<char> method, [MaybeNullWhen(false)] out IReadOnlySet<string> codes)
+    {
+        if (ReturnCodes.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue([.. type, '.', .. method], out var list))
+        {
+            codes = list;
+            return true;
+        }
+
+        codes = null;
+        return false;
+    }
+
     public void Parse(IEnumerable<TextReader> readers)
     {
         foreach (var reader in readers)
@@ -74,13 +89,13 @@ public class Documents
 
     private void Parse(TextReader reader)
     {
-        if (reader.SeekLineWithPrefix(UidPrefix) is not string fullLine)
+        if (!reader.TrySeekLine(UidPrefix, out var fullLine))
         {
             return;
         }
 
         var uid = fullLine.AsSpan(UidPrefix.Length).Trim();
-        var isDbgeng = uid.Contains(":dbgeng.", StringComparison.Ordinal);
+        var isDbgEng = uid.Contains(":dbgeng.", StringComparison.Ordinal);
 
         switch (uid[1])
         {
@@ -91,23 +106,23 @@ public class Documents
             case 'E':
             // enums, not seen yet, skip
             case 'L':
-            // IXyzCallbacks base implementations, skip
+                // IXyzCallbacks base implementations, skip
                 return;
 
             case 'N':
-                if (isDbgeng)
+                if (isDbgEng)
                 {
                     ParseInterface(uid[UidDbgEngPrefix.Length..], reader);
                 }
                 return;
             case 'F':
-                if (isDbgeng)
+                if (isDbgEng)
                 {
                     ParseFunction(uid[UidDbgEngPrefix.Length..], reader);
                 }
                 return;
             case 'S':
-                if (isDbgeng)
+                if (isDbgEng)
                 {
                     ParseStruct(uid[(UidDbgEngPrefix.Length + 1)..], reader);
                 }
@@ -124,7 +139,9 @@ public class Documents
 
     private void ParseInterface(ReadOnlySpan<char> name, TextReader reader)
     {
-        var fullLine = reader.SeekLineWithPrefix(DescriptionPrefix);
+        var hasDescription = reader.TrySeekLine(DescriptionPrefix, out var fullLine);
+        Debug.Assert(hasDescription);
+
         TypeSummaries.Add(name.ToString(), fullLine.AsSpan(DescriptionPrefix.Length).Trim().ToString());
     }
 
@@ -137,16 +154,19 @@ public class Documents
             return;
         }
 
-        var fullLine = reader.SeekLineWithPrefix(DescriptionPrefix);
+        var hasDescription = reader.TrySeekLine(DescriptionPrefix, out var fullLine);
+        Debug.Assert(hasDescription);
+
         var summary = fullLine.AsSpan(DescriptionPrefix.Length).Trim().ToString();
 
         AddMemberSummary(functionName[..dot], functionName[(dot + 1)..].ToString(), summary);
 
         const string memberHeader = "### -param ";
+        const string returnsHeader = "## -returns";
 
-        if (reader.SeekLineWithPrefix(memberHeader) is string memberLine)
+        if (reader.TrySeekLine(memberHeader, out var nextLine, ignoreLeadingSpaces: true, returnsHeader))
         {
-            var parameterName = getParameterName(memberLine, out var isOut);
+            var parameterName = getParameterName(nextLine, out var isOut);
             var lookup = Parameters.GetAlternateLookup<ReadOnlySpan<char>>();
 
             if (!lookup.TryGetValue(functionName, out var parameters))
@@ -154,26 +174,35 @@ public class Documents
                 lookup[functionName] = parameters = [];
             }
 
-            do
+            while (ParseMemberDescription(reader, memberHeader, out nextLine, desc => parameters.Add((isOut, parameterName, desc))))
             {
-                var description = ParseMemberDescription(reader, memberHeader, out var nextMemberLine);
-
-                parameters.Add((isOut, parameterName, description));
-
-                parameterName = getParameterName(nextMemberLine, out isOut);
+                parameterName = getParameterName(nextLine, out isOut);
             }
-            while (parameterName is not null);
         }
 
-        [return: NotNullIfNotNull(nameof(memberLine))]
-        static string? getParameterName(string? memberLine, out bool isOut)
+        if (nextLine?.StartsWith(returnsHeader) == true
+            || reader.TrySeekLine(returnsHeader, out nextLine))
+        {
+            var lookup1 = ReturnCodes.GetAlternateLookup<ReadOnlySpan<char>>();
+            if (!lookup1.TryGetValue(functionName, out var codesSet))
+            {
+                lookup1[functionName] = codesSet = [];
+            }
+
+            var codes = codesSet.GetAlternateLookup<ReadOnlySpan<char>>();
+
+            while ((nextLine = reader.ReadLine()) is not null && !nextLine.StartsWith('#'))
+            {
+                foreach (var match in HResultRegex.EnumerateMatches(nextLine))
+                {
+                    codes.Add(nextLine.AsSpan(match.Index, match.Length));
+                }
+            }
+        }
+
+        static string getParameterName(string memberLine, out bool isOut)
         {
             isOut = false;
-
-            if (memberLine is null)
-            {
-                return null;
-            }
 
             var parameterName = memberLine.AsSpan(memberHeader.Length).Trim();
 
@@ -195,12 +224,14 @@ public class Documents
 
     private void ParseStruct(ReadOnlySpan<char> structName, TextReader reader)
     {
-        var fullLine = reader.SeekLineWithPrefix(DescriptionPrefix);
+        var hasDescription = reader.TrySeekLine(DescriptionPrefix, out var fullLine);
+        Debug.Assert(hasDescription);
+
         TypeSummaries.Add(structName.ToString(), fullLine.AsSpan(DescriptionPrefix.Length).Trim().ToString());
 
         const string memberHeader = "### -field ";
 
-        if (reader.SeekLineWithPrefix(memberHeader) is string memberLine)
+        if (reader.TrySeekLine(memberHeader, out var memberLine))
         {
             var fieldName = getFieldName(memberLine);
             var lookup = MemberSummaries.GetAlternateLookup<ReadOnlySpan<char>>();
@@ -210,25 +241,14 @@ public class Documents
                 lookup[structName] = fields = [];
             }
 
-            do
+            while (ParseMemberDescription(reader, memberHeader, out var nextLine, desc => fields.Add(fieldName, desc)))
             {
-                var description = ParseMemberDescription(reader, memberHeader, out var nextMemberLine);
-
-                fields.Add(fieldName, description);
-
-                fieldName = getFieldName(nextMemberLine);
+                fieldName = getFieldName(nextLine);
             }
-            while (fieldName is not null);
         }
 
-        [return: NotNullIfNotNull(nameof(memberLine))]
-        static string? getFieldName(string? memberLine)
+        static string getFieldName(string memberLine)
         {
-            if (memberLine is null)
-            {
-                return null;
-            }
-
             var fieldName = memberLine.AsSpan(memberHeader.Length).Trim();
 
             var square = fieldName.IndexOf('[');
@@ -241,33 +261,34 @@ public class Documents
         }
     }
 
-    private static string ParseMemberDescription(TextReader reader, string memberHeader, out string? nextMemberLine)
+    private static bool ParseMemberDescription(TextReader reader, string memberHeader, [MaybeNullWhen(false)] out string nextLine, Action<string> setDescription)
     {
         var builder = new DefaultInterpolatedStringHandler(512, 0);
+        var isMemberLine = false;
 
-        while (reader.ReadLine() is string fullLine)
+        while ((nextLine = reader.ReadLine()) is not null)
         {
-            if (fullLine.StartsWith(memberHeader))
+            if (nextLine.StartsWith(memberHeader))
             {
-                nextMemberLine = fullLine;
-                goto exit;
+                isMemberLine = true;
+                break;
             }
-            else if (fullLine.StartsWith("## ") || fullLine.StartsWith("# "))
+            else if (nextLine.StartsWith("## ") || nextLine.StartsWith("# "))
             {
                 break;
             }
 
-            builder.AppendLiteral(fullLine);
+            builder.AppendLiteral(nextLine);
             builder.AppendLiteral(Environment.NewLine);
         }
 
-        nextMemberLine = null;
+        var description = builder.Text.Trim().ToString();
 
-    exit:
-        var result = builder.Text.Trim().ToString();
+        setDescription(description);
 
         builder.Clear();
-        return result;
+
+        return isMemberLine;
     }
 
     private void AddMemberSummary(ReadOnlySpan<char> parent, string child, string summary)
@@ -281,4 +302,7 @@ public class Documents
 
         members.Add(child, summary);
     }
+
+    [GeneratedRegex(@"\b[SE]_[A-Z]+")]
+    private static partial Regex HResultRegex { get; }
 }

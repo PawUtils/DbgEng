@@ -214,6 +214,9 @@ namespace SrcGen
         private void WriteParam(string name, string? summary, int indentLevel = 0)
             => WriteXmlDocument(indentLevel, "param", summary, $"name=\"{name}\"");
 
+        private void WriteReturns(IReadOnlySet<string> returnCodes, int indentLevel = 0)
+            => WriteXmlDocument(indentLevel, "returns", String.Join(", ", returnCodes));
+
         private void WriteXmlDocument(int indentLevel, string tagName, string? encodedContent, string? attributes = null)
         {
             if (encodedContent is null)
@@ -661,7 +664,8 @@ namespace SrcGen
             Output.WriteLine();
             Output.WriteLine("{");
 
-            hpp.SeekLineWithPrefix($"// {interfaceName}", ignoreLeadingSpaces: true);
+            var locatorCommentExists = hpp.TrySeekLine($"// {interfaceName}", out _, ignoreLeadingSpaces: true);
+            Debug.Assert(locatorCommentExists);
 
             ReadOnlySpan<char> methodName = default;
 
@@ -682,6 +686,7 @@ namespace SrcGen
                         var R = line.IndexOf(')');
 
                         ReadOnlySpan<char> returnType;
+                        var preserveSig = false;
 
                         if (line["STDMETHOD".Length] == '_')
                         {
@@ -690,7 +695,7 @@ namespace SrcGen
                             returnType = line[L..comma];
                             methodName = line[(comma + ", ".Length)..R];
 
-                            Output.WriteLine("    [PreserveSig]");
+                            preserveSig = true;
                         }
                         else
                         {
@@ -711,7 +716,22 @@ namespace SrcGen
                             }
                         }
 
+                        if (Docs.TryGetReturnCodes(interfaceName, methodName, out var returnCodes)
+                            && returnCodes.Count(code => code.StartsWith("S_")) > 1
+                            && (paramters is null || !paramters.Any(p => p.isOut)))
+                        {
+                            returnType = "HRESULT";
+                            preserveSig = true;
+
+                            WriteReturns(returnCodes, indentLevel: 1);
+                        }
+
                         WriteRemarks(CodeRemarks, indentLevel: 1);
+
+                        if (preserveSig)
+                        {
+                            Output.WriteLine("    [PreserveSig]");
+                        }
 
                         Output.WriteLine($"""
                                 {returnType} {methodName}

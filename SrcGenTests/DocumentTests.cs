@@ -415,6 +415,27 @@ public class DocumentTests : TestsBase
     }
 
     [Fact]
+    public void TestFunctionWithoutParameters()
+    {
+        var documents = new Documents();
+        documents.Parse([
+            new StringReader("""
+                ---
+                UID: NF:dbgeng.IDebugClient.EndSession
+                title: IDebugClient::EndSession (dbgeng.h)
+                description: The EndSession method ends ...
+                ---
+                """)
+        ]);
+
+        Assert.True(documents.TryGetSummary("IDebugClient", "EndSession", out var summary));
+        Assert.Equal("The EndSession method ends ...", summary);
+
+        Assert.False(documents.TryGetParameters("IDebugClient", "EndSession", out var parameters));
+        Assert.Null(parameters);
+    }
+
+    [Fact]
     public void TestFunction()
     {
         var documents = new Documents();
@@ -462,6 +483,41 @@ public class DocumentTests : TestsBase
 
         Assert.True(documents.TryGetParameters("IDebugClient", "EndSession", out var parameters));
         Assert.Equal([(isOut: true, "Flags", "Lorem ipsum sit domit")], parameters);
+    }
+
+    [Fact]
+    public void TestFunctionWithMultipleExitCodesWithoutParameters()
+    {
+        var documents = new Documents();
+        documents.Parse([
+            new StringReader("""
+                ---
+                UID: NF:dbgeng.IDebugClient.EndSession
+                title: IDebugClient::EndSession (dbgeng.h)
+                description: The EndSession method ends ...
+                ---
+                ## -returns
+
+                S_OK
+
+                S_FALSE
+
+                E_NOINTERFACE
+
+                """)
+        ]);
+
+        Assert.True(documents.TryGetSummary("IDebugClient", "EndSession", out var summary));
+        Assert.Equal("The EndSession method ends ...", summary);
+
+        Assert.False(documents.TryGetParameters("IDebugClient", "EndSession", out var parameters));
+        Assert.Null(parameters);
+
+        Assert.True(documents.TryGetReturnCodes("IDebugClient", "EndSession", out var codes));
+        Assert.Equal(3, codes.Count);
+        Assert.True(codes.Contains("S_OK"));
+        Assert.True(codes.Contains("S_FALSE"));
+        Assert.True(codes.Contains("E_NOINTERFACE"));
     }
 
     [Fact]
@@ -573,6 +629,172 @@ public class DocumentTests : TestsBase
             UID: NN:dbgeng.ISomeInterface
             description: An interface
             ---
+            """
+            ]);
+    }
+
+    [Fact]
+    public void TestInterfaceFunctionXmlWithPreserveSig0()
+    {
+        AssertGeneratedWithDocuments("""
+            [GeneratedComInterface(Options = ComInterfaceOptions.ComObjectWrapper)]
+            [Guid("f2df5f53-071f-47bd-9de6-5734c3fed689")]
+            public partial interface ISomeInterface
+            {
+                /// <summary>
+                /// Well ...
+                /// </summary>
+                /// <returns>
+                /// S_OK, S_FALSE
+                /// </returns>
+                [PreserveSig]
+                HRESULT Boom
+                (
+                );
+
+            }
+            """,
+            """
+            typedef interface DECLSPEC_UUID("f2df5f53-071f-47bd-9de6-5734c3fed689")
+                ISomeInterface* PSOME_INTERFACE;
+            
+            #undef INTERFACE
+            #define INTERFACE ISomeInterface
+            DECLARE_INTERFACE_(ISomeInterface, IUnknown)
+            {
+                // ISomeInterface.
+                STDMETHOD(Boom)(
+                    THIS
+                    ) PURE;
+            };
+            """,
+            [
+            """
+            ---
+            UID: NF:dbgeng.ISomeInterface.Boom
+            description: Well ...
+            ---
+            ## -returns
+
+            S_OK
+            S_FALSE
+
+            """
+            ]);
+    }
+
+    [Fact]
+    public void TestInterfaceFunctionXmlWithPreserveSig1()
+    {
+        AssertGeneratedWithDocuments("""
+            [GeneratedComInterface(Options = ComInterfaceOptions.ComObjectWrapper)]
+            [Guid("f2df5f53-071f-47bd-9de6-5734c3fed689")]
+            public partial interface ISomeInterface
+            {
+                /// <summary>
+                /// Well ...
+                /// </summary>
+                /// <param name="Flags">
+                /// Guess
+                /// </param>
+                /// <returns>
+                /// S_OK, S_FALSE
+                /// </returns>
+                [PreserveSig]
+                HRESULT Boom
+                (
+                    // _In_
+                    UINT32 Flags
+                );
+
+            }
+            """,
+            """
+            typedef interface DECLSPEC_UUID("f2df5f53-071f-47bd-9de6-5734c3fed689")
+                ISomeInterface* PSOME_INTERFACE;
+            
+            #undef INTERFACE
+            #define INTERFACE ISomeInterface
+            DECLARE_INTERFACE_(ISomeInterface, IUnknown)
+            {
+                // ISomeInterface.
+                STDMETHOD(Boom)(
+                    THIS_
+                    _In_ UINT32 Flags
+                    ) PURE;
+            };
+            """,
+            [
+            """
+            ---
+            UID: NF:dbgeng.ISomeInterface.Boom
+            description: Well ...
+            ---
+            ### -param Flags [in]
+
+            Guess
+
+            ## -returns
+
+            S_OK
+            S_FALSE
+
+            """
+            ]);
+    }
+
+    [Fact]
+    public void TestInterfaceFunctionXmlWithNoPreserveSig0()
+    {
+        AssertGeneratedWithDocuments("""
+            [GeneratedComInterface(Options = ComInterfaceOptions.ComObjectWrapper)]
+            [Guid("f2df5f53-071f-47bd-9de6-5734c3fed689")]
+            public partial interface ISomeInterface
+            {
+                /// <summary>
+                /// Well ...
+                /// </summary>
+                /// <param name="Flags">
+                /// Guess
+                /// </param>
+                void Boom
+                (
+                    // _Out_
+                    out UINT32 Flags
+                );
+
+            }
+            """,
+            """
+            typedef interface DECLSPEC_UUID("f2df5f53-071f-47bd-9de6-5734c3fed689")
+                ISomeInterface* PSOME_INTERFACE;
+            
+            #undef INTERFACE
+            #define INTERFACE ISomeInterface
+            DECLARE_INTERFACE_(ISomeInterface, IUnknown)
+            {
+                // ISomeInterface.
+                STDMETHOD(Boom)(
+                    THIS_
+                    _Out_ PUINT32 Flags
+                    ) PURE;
+            };
+            """,
+            [
+            """
+            ---
+            UID: NF:dbgeng.ISomeInterface.Boom
+            description: Well ...
+            ---
+            ### -param Flags [out]
+
+            Guess
+
+            ## -returns
+
+            S_OK
+            S_FALSE
+
             """
             ]);
     }

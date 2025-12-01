@@ -1,12 +1,13 @@
-﻿namespace SrcGen;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace SrcGen;
 
 internal static class TextReaderExtensions
 {
-    public static string? SeekLineWithPrefix(this TextReader reader, string prefix, bool ignoreLeadingSpaces = false)
+    public static bool TrySeekLine(this TextReader reader, string prefix, [MaybeNullWhen(false)] out string line, bool ignoreLeadingSpaces = false, params ReadOnlySpan<string> excludePrefices)
     {
-        while (reader.Peek() > -1)
+        while ((line = reader.ReadLine()) is not null)
         {
-            var line = reader.ReadLine();
             var span = line.AsSpan();
 
             if (ignoreLeadingSpaces)
@@ -16,11 +17,19 @@ internal static class TextReaderExtensions
 
             if (span.StartsWith(prefix))
             {
-                return line;
+                return true;
+            }
+
+            foreach (var stopper in excludePrefices)
+            {
+                if (span.StartsWith(stopper))
+                {
+                    return false;
+                }
             }
         }
 
-        return null;
+        return false;
     }
 
 }
