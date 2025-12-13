@@ -11,6 +11,7 @@ public partial class Documents
     const string UidDbgEngPrefix = "Nx:dbgeng.";
     const string UidWinNTPrefix = "Nx:winnt.";
     const string DescriptionPrefix = "description:";
+    const string DescriptionHeader = "## -description";
 
     readonly Dictionary<string, string> TypeSummaries = [];
     readonly Dictionary<string, Dictionary<string, string>> MemberSummaries = [];
@@ -173,7 +174,7 @@ public partial class Documents
             do
             {
                 var parameterName = getParameterName(nextLine!, out var isOut);
-                var description = ParseMemberDescription(reader, memberHeader, out nextLine, out more);
+                var description = ParseDescription(reader, memberHeader, out nextLine, out more);
 
                 parameters.Add((isOut, parameterName, description));
             }
@@ -243,7 +244,7 @@ public partial class Documents
             do
             {
                 var fieldName = getFieldName(memberLine!);
-                var description = ParseMemberDescription(reader, memberHeader, out memberLine, out more);
+                var description = ParseDescription(reader, memberHeader, out memberLine, out more);
 
                 fields.Add(fieldName, description);
             }
@@ -264,14 +265,14 @@ public partial class Documents
         }
     }
 
-    private static string ParseMemberDescription(TextReader reader, string memberHeader, out string? nextLine, out bool more)
+    private static string ParseDescription(TextReader reader, string header, out string? nextLine, out bool more)
     {
         var builder = new DefaultInterpolatedStringHandler(512, 0);
         more = false;
 
         while ((nextLine = reader.ReadLine()) is not null)
         {
-            if (nextLine.StartsWith(memberHeader))
+            if (nextLine.StartsWith(header))
             {
                 more = true;
                 break;
