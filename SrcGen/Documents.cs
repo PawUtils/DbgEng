@@ -166,7 +166,6 @@ public partial class Documents
 
         if (reader.TrySeekLine(memberHeader, out var nextLine, ignoreLeadingSpaces: true, returnsHeader))
         {
-            var parameterName = getParameterName(nextLine, out var isOut);
             var lookup = Parameters.GetAlternateLookup<ReadOnlySpan<char>>();
 
             if (!lookup.TryGetValue(functionName, out var parameters))
@@ -174,14 +173,18 @@ public partial class Documents
                 lookup[functionName] = parameters = [];
             }
 
-            while (ParseMemberDescription(reader, memberHeader, out nextLine, desc => parameters.Add((isOut, parameterName, desc))))
+            bool more;
+            do
             {
-                parameterName = getParameterName(nextLine, out isOut);
+                var parameterName = getParameterName(nextLine!, out var isOut);
+                var description = ParseMemberDescription(reader, memberHeader, out nextLine, out more);
+
+                parameters.Add((isOut, parameterName, description));
             }
+            while (more);
         }
 
-        if (nextLine?.StartsWith(returnsHeader) == true
-            || reader.TrySeekLine(returnsHeader, out nextLine))
+        if (nextLine?.StartsWith(returnsHeader) == true || reader.TrySeekLine(returnsHeader, out _))
         {
             var lookup1 = ReturnCodes.GetAlternateLookup<ReadOnlySpan<char>>();
             if (!lookup1.TryGetValue(functionName, out var codesSet))
@@ -233,7 +236,6 @@ public partial class Documents
 
         if (reader.TrySeekLine(memberHeader, out var memberLine))
         {
-            var fieldName = getFieldName(memberLine);
             var lookup = MemberSummaries.GetAlternateLookup<ReadOnlySpan<char>>();
 
             if (!lookup.TryGetValue(structName, out var fields))
@@ -241,10 +243,15 @@ public partial class Documents
                 lookup[structName] = fields = [];
             }
 
-            while (ParseMemberDescription(reader, memberHeader, out var nextLine, desc => fields.Add(fieldName, desc)))
+            bool more;
+            do
             {
-                fieldName = getFieldName(nextLine);
+                var fieldName = getFieldName(memberLine!);
+                var description = ParseMemberDescription(reader, memberHeader, out memberLine, out more);
+
+                fields.Add(fieldName, description);
             }
+            while (more);
         }
 
         static string getFieldName(string memberLine)
@@ -261,16 +268,16 @@ public partial class Documents
         }
     }
 
-    private static bool ParseMemberDescription(TextReader reader, string memberHeader, [MaybeNullWhen(false)] out string nextLine, Action<string> setDescription)
+    private static string ParseMemberDescription(TextReader reader, string memberHeader, out string? nextLine, out bool more)
     {
         var builder = new DefaultInterpolatedStringHandler(512, 0);
-        var isMemberLine = false;
+        more = false;
 
         while ((nextLine = reader.ReadLine()) is not null)
         {
             if (nextLine.StartsWith(memberHeader))
             {
-                isMemberLine = true;
+                more = true;
                 break;
             }
             else if (nextLine.StartsWith("## ") || nextLine.StartsWith("# "))
@@ -284,11 +291,9 @@ public partial class Documents
 
         var description = builder.Text.Trim().ToString();
 
-        setDescription(description);
-
         builder.Clear();
 
-        return isMemberLine;
+        return description;
     }
 
     private void AddMemberSummary(ReadOnlySpan<char> parent, string child, string summary)
