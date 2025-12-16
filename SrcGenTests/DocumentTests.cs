@@ -436,7 +436,7 @@ public class DocumentTests : TestsBase
     }
 
     [Fact]
-    public void TestFunction()
+    public void TestFunction0()
     {
         var documents = new Documents();
         documents.Parse([
@@ -447,6 +447,35 @@ public class DocumentTests : TestsBase
                 description: The EndSession method ends ...
                 ---
 
+                ## -params
+                ### -param Flags [in]
+
+                Lorem ipsum sit domit                
+                """)
+        ]);
+
+        Assert.True(documents.TryGetSummary("IDebugClient", "EndSession", out var summary));
+        Assert.Equal("The EndSession method ends ...", summary);
+
+        Assert.True(documents.TryGetParameters("IDebugClient", "EndSession", out var parameters));
+        Assert.Equal([(isOut: false, "Flags", "Lorem ipsum sit domit")], parameters);
+    }
+
+    [Fact]
+    public void TestFunction1()
+    {
+        var documents = new Documents();
+        documents.Parse([
+            new StringReader("""
+                ---
+                UID: NF:dbgeng.IDebugClient.EndSession
+                title: IDebugClient::EndSession (dbgeng.h)
+                description: The EndSession method ends ...
+                ---
+
+                ## -description
+
+                ## -params
                 ### -param Flags [in]
 
                 Lorem ipsum sit domit                
@@ -472,6 +501,7 @@ public class DocumentTests : TestsBase
                 description: The EndSession method ends ...
                 ---
 
+                ## -params
                 ### -param Flags [out]
 
                 Lorem ipsum sit domit
@@ -486,7 +516,7 @@ public class DocumentTests : TestsBase
     }
 
     [Fact]
-    public void TestFunctionWithMultipleExitCodesWithoutParameters()
+    public void TestFunctionWithMultipleExitCodesWithoutParameters0()
     {
         var documents = new Documents();
         documents.Parse([
@@ -521,7 +551,44 @@ public class DocumentTests : TestsBase
     }
 
     [Fact]
-    public void TestInterfaceFunction()
+    public void TestFunctionWithMultipleExitCodesWithoutParameters1()
+    {
+        var documents = new Documents();
+        documents.Parse([
+            new StringReader("""
+                ---
+                UID: NF:dbgeng.IDebugClient.EndSession
+                title: IDebugClient::EndSession (dbgeng.h)
+                description: The EndSession method ends ...
+                ---
+                ## -description
+
+                ## -returns
+
+                S_OK
+
+                S_FALSE
+
+                E_NOINTERFACE
+
+                """)
+        ]);
+
+        Assert.True(documents.TryGetSummary("IDebugClient", "EndSession", out var summary));
+        Assert.Equal("The EndSession method ends ...", summary);
+
+        Assert.False(documents.TryGetParameters("IDebugClient", "EndSession", out var parameters));
+        Assert.Null(parameters);
+
+        Assert.True(documents.TryGetReturnCodes("IDebugClient", "EndSession", out var codes));
+        Assert.Equal(3, codes.Count);
+        Assert.True(codes.Contains("S_OK"));
+        Assert.True(codes.Contains("S_FALSE"));
+        Assert.True(codes.Contains("E_NOINTERFACE"));
+    }
+
+    [Fact]
+    public void TestInterfaceFunction0()
     {
         var documents = new Documents();
         documents.Parse([
@@ -532,6 +599,7 @@ public class DocumentTests : TestsBase
                 description: The EndSession method ends ...
                 ---
 
+                ## -params
                 ### -param Flags [in]
 
                 Lorem ipsum sit domit
@@ -549,6 +617,45 @@ public class DocumentTests : TestsBase
 
         Assert.True(documents.TryGetSummary("IDebugClient", "EndSession", out summary));
         Assert.Equal("The EndSession method ends ...", summary);
+
+        Assert.True(documents.TryGetParameters("IDebugClient", "EndSession", out var parameters));
+        Assert.Equal([(isOut: false, "Flags", "Lorem ipsum sit domit")], parameters);
+    }
+
+    [Fact]
+    public void TestInterfaceFunction1()
+    {
+        var documents = new Documents();
+        documents.Parse([
+            new StringReader("""
+                ---
+                UID: NF:dbgeng.IDebugClient.EndSession
+                title: IDebugClient::EndSession (dbgeng.h)
+                description: The EndSession method ends ...
+                ---
+
+                ## -description
+
+                More detailed descriptions
+
+                ## -params
+                ### -param Flags [in]
+
+                Lorem ipsum sit domit
+                """),
+            new StringReader("""
+                ---
+                UID: NN:dbgeng.IDebugClient
+                description: IDebugClient interface
+                ---
+                """)
+        ]);
+
+        Assert.True(documents.TryGetSummary("IDebugClient", out var summary));
+        Assert.Equal("IDebugClient interface", summary);
+
+        Assert.True(documents.TryGetSummary("IDebugClient", "EndSession", out summary));
+        Assert.Equal("More detailed descriptions", summary);
 
         Assert.True(documents.TryGetParameters("IDebugClient", "EndSession", out var parameters));
         Assert.Equal([(isOut: false, "Flags", "Lorem ipsum sit domit")], parameters);
@@ -611,6 +718,7 @@ public class DocumentTests : TestsBase
             description: Well ...
             ---
 
+            ## -params
             ### -param Flags [in]
 
             Lorem ipsum sit domit
@@ -692,7 +800,7 @@ public class DocumentTests : TestsBase
             public partial interface ISomeInterface
             {
                 /// <summary>
-                /// Well ...
+                /// Well well well
                 /// </summary>
                 /// <param name="Flags">
                 /// Guess
@@ -730,6 +838,11 @@ public class DocumentTests : TestsBase
             UID: NF:dbgeng.ISomeInterface.Boom
             description: Well ...
             ---
+            ## -description
+
+            Well well well
+
+            ## -params
             ### -param Flags [in]
 
             Guess
@@ -786,6 +899,7 @@ public class DocumentTests : TestsBase
             UID: NF:dbgeng.ISomeInterface.Boom
             description: Well ...
             ---
+            ## -params
             ### -param Flags [out]
 
             Guess

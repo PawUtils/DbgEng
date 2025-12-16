@@ -151,17 +151,33 @@ public partial class Documents
             return;
         }
 
-        var hasDescription = reader.TrySeekLine(DescriptionPrefix, out var fullLine);
-        Debug.Assert(hasDescription);
+        const string paramsHeader = "## -params";
+        const string returnsHeader = "## -returns";
 
-        var summary = fullLine.AsSpan(DescriptionPrefix.Length).Trim().ToString();
+        var summary = "";
+
+        if (reader.TrySeekLine(DescriptionPrefix, out var nextLine))
+        {
+            summary = nextLine.AsSpan(DescriptionPrefix.Length).Trim().ToString();
+        }
+
+        if (reader.TrySeekLine(DescriptionHeader, out nextLine, ignoreLeadingSpaces: false, paramsHeader, returnsHeader))
+        {
+            var detailedSummary = ParseDescription(reader, DescriptionHeader, out nextLine, out var more);
+            Debug.Assert(!more);
+
+            if (!String.IsNullOrWhiteSpace(detailedSummary))
+            {
+                summary = detailedSummary;
+            }
+        }
 
         AddMemberSummary(functionName[..dot], functionName[(dot + 1)..].ToString(), summary);
 
         const string memberHeader = "### -param ";
-        const string returnsHeader = "## -returns";
 
-        if (reader.TrySeekLine(memberHeader, out var nextLine, ignoreLeadingSpaces: true, returnsHeader))
+        if ((nextLine is null || !nextLine.StartsWith(returnsHeader))
+            && reader.TrySeekLine(memberHeader, out nextLine, ignoreLeadingSpaces: true, returnsHeader))
         {
             var lookup = Parameters.GetAlternateLookup<ReadOnlySpan<char>>();
 
