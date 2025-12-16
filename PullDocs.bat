@@ -1,5 +1,5 @@
-SET wdk_rev=ac22b06
-SET sdk_rev=e192280
+SET wdk_rev=7d3debf
+SET sdk_rev=04ab81f
 
 IF NOT EXIST "MicrosoftDocs" (
 
