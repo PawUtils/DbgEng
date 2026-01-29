@@ -100,7 +100,7 @@ public partial class Documents
         }
 
         var uid = fullLine.AsSpan(UidPrefix.Length).Trim();
-        var isDbgEng = uid.Contains(":dbgeng.", StringComparison.Ordinal);
+        static bool isDbgEng(ReadOnlySpan<char> uid) => uid.Contains(":dbgeng.", StringComparison.Ordinal);
 
         switch (uid[1])
         {
@@ -111,19 +111,19 @@ public partial class Documents
                 return;
 
             case 'N':
-                if (isDbgEng)
+                if (isDbgEng(uid))
                 {
                     ParseInterface(uid[UidDbgEngPrefix.Length..], reader);
                 }
                 return;
             case 'F':
-                if (isDbgEng)
+                if (isDbgEng(uid))
                 {
                     ParseFunction(uid[UidDbgEngPrefix.Length..], reader);
                 }
                 return;
             case 'S':
-                if (isDbgEng)
+                if (isDbgEng(uid))
                 {
                     ParseStruct(uid[(UidDbgEngPrefix.Length + 1)..], reader);
                 }
