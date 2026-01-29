@@ -94,7 +94,7 @@ public partial class Documents
 
     private void Parse(TextReader reader)
     {
-        if (!reader.TrySeekLine(UidPrefix, out var fullLine, prefixesToStop: "#"))
+        if (!reader.TrySeekLine(UidPrefix, out var fullLine, stopOn: "#"))
         {
             return;
         }
@@ -160,12 +160,12 @@ public partial class Documents
 
         var summary = "";
 
-        if (reader.TrySeekLine(DescriptionPrefix, out var nextLine, prefixesToStop: "---"))
+        if (reader.TrySeekLine(DescriptionPrefix, out var nextLine, stopOn: "---"))
         {
             summary = nextLine.AsSpan(DescriptionPrefix.Length).Trim().ToString();
         }
 
-        if (reader.TrySeekLine(DescriptionHeader, out nextLine, prefixesToStop: [paramsHeader, returnsHeader]))
+        if (reader.TrySeekLine(DescriptionHeader, out nextLine, stopOn: [paramsHeader, returnsHeader]))
         {
             var detailedSummary = ParseDescription(reader, DescriptionHeader, out nextLine, out var more);
             Debug.Assert(!more);
