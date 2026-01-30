@@ -6,13 +6,13 @@ This library is created by translating the `dbgeng.h` to C# code that utilizes [
 
 ## Get started
 
-1. Add a package reference to [DumbPrograms.DbgEng](https://www.nuget.org/packages/DumbPrograms.DbgEng) in your project.
+1. Add a package reference to [PawUtils.DbgEng](https://www.nuget.org/packages/PawUtils.DbgEng) in your project.
 1. Get an `IDebugClient` from the static `Interop.DbgEng.IDebugClient.Create()` method.
 1. Voila!
 
 ## Example
 
-See https://github.com/DumbPrograms/PrintDmpStack
+See https://github.com/PawUtils/PrintDmpStack
 
 ## Build
 
