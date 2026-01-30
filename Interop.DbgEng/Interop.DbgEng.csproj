@@ -25,12 +25,12 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageId>DumbPrograms.DbgEng</PackageId>
+    <PackageId>PawUtils.DbgEng</PackageId>
     <Version>1.4.2026.0109</Version>
     <Authors>diryboy</Authors>
     <Title>.Net library to use dbgeng.h</Title>
     <Description>.Net interop library to use dbgeng.h</Description>
-    <RepositoryUrl>https://github.com/DumbPrograms/DbgEng</RepositoryUrl>
+    <RepositoryUrl>https://github.com/PawUtils/DbgEng</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
