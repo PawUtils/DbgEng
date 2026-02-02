@@ -14,10 +14,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MicrosoftDebuggingPlatformDbgEngContent)../build/native/inc/dbgeng.h" Link="headers\dbgeng.h" />
-    <None Include="../headers/missing.h" Link="headers\missing.h" />
-    <None Include="$(MicrosoftDocs)sdk/sdk-api-src/content/winnt/*.md" Link="docs\winnt\%(FileName).md" />
-    <None Include="$(MicrosoftDocs)wdk/wdk-ddi-src/content/dbgeng/*.md" Link="docs\dbgeng\%(FileName).md" />
+    <None Include="../headers/missing.h" Link="headers\missing.h">
+      <SrcGenInput>missing.h</SrcGenInput>
+    </None>
+    <None Include="$(MicrosoftDebuggingPlatformDbgEngContent)../build/native/inc/dbgeng.h" Link="headers\dbgeng.h">
+      <SrcGenInput>dbgeng.h</SrcGenInput>
+    </None>
+    <None Include="$(MicrosoftDocs)sdk/sdk-api-src/content/winnt/*.md" Link="docs\winnt\%(FileName).md">
+      <SrcGenInput>docs</SrcGenInput>
+    </None>
+    <None Include="$(MicrosoftDocs)wdk/wdk-ddi-src/content/dbgeng/*.md" Link="docs\dbgeng\%(FileName).md">
+      <SrcGenInput>docs</SrcGenInput>
+    </None>
   </ItemGroup>
 
   <PropertyGroup>
@@ -49,17 +57,17 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.DisableRuntimeMarshalling" />
   </ItemGroup>
 
-  <Target Name="GenSrc" DependsOnTargets="ResolveReferences" BeforeTargets="BeforeCompile">
+  <Target Name="PreGenSrc" BeforeTargets="GenSrc">
     <PropertyGroup>
       <SrcGenDll>$(ArtifactsPath)/bin/SrcGen/$(Configuration)/SrcGen.dll</SrcGenDll>
-      <DbgEngHeaderFile>$(MicrosoftDebuggingPlatformDbgEngContent)../build/native/inc/dbgeng.h</DbgEngHeaderFile>
-      <DbgEngMissingHFile>$(ProjectDir)../headers/missing.h</DbgEngMissingHFile>
-      <SrcGenOutCsFile>$(IntermediateOutputPath)DbgEng.g.cs</SrcGenOutCsFile>
+      <SrcGenOutput>$(IntermediateOutputPath)DbgEng.g.cs</SrcGenOutput>
     </PropertyGroup>
-    <Exec Command="dotnet exec &quot;$(SrcGenDll)&quot; &quot;$(DbgEngHeaderFile)&quot; &quot;$(DbgEngMissingHFile)&quot; &quot;$(SrcGenOutCsFile)&quot; &quot;$(MicrosoftDocs)&quot;" />
+  </Target>
+  <Target Name="GenSrc" DependsOnTargets="ResolveReferences" BeforeTargets="BeforeCompile" Inputs="$(SrcGenDll);@(None->HasMetadata('SrcGenInput'))" Outputs="$(SrcGenOutput)">
+    <Exec Command="dotnet exec &quot;$(SrcGenDll)&quot; &quot;@(None->WithMetadataValue('SrcGenInput','dbgeng.h'))&quot; &quot;@(None->WithMetadataValue('SrcGenInput','missing.h'))&quot; &quot;$(SrcGenOutput)&quot; &quot;$(MicrosoftDocs)&quot;" />
     <ItemGroup>
-      <Compile Include="$(SrcGenOutCsFile)" />
-      <FileWrites Include="$(SrcGenOutCsFile)" />
+      <Compile Include="$(SrcGenOutput)" />
+      <FileWrites Include="$(SrcGenOutput)" />
     </ItemGroup>
   </Target>
 
