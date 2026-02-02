@@ -80,9 +80,8 @@ namespace SrcGen
         {
             const string DECLSPEC_UUID = "typedef interface DECLSPEC_UUID(\"";
 
-            while (hpp.Peek() > -1)
+            while (hpp.ReadLine() is string fullLine)
             {
-                var fullLine = hpp.ReadLine()!;
                 var line = fullLine.AsSpan();
 
                 if (TryGetCodeRemarks(line))
@@ -427,9 +426,8 @@ namespace SrcGen
         {
             var nestedStructs = 0;
 
-            while (hpp.Peek() > -1)
+            while (hpp.ReadLine() is string fullLine)
             {
-                var fullLine = hpp.ReadLine()!;
                 var line = fullLine.AsSpan().Trim();
 
                 if (line.IsEmpty)
@@ -667,12 +665,19 @@ namespace SrcGen
             var locatorCommentExists = hpp.TrySeekLine($"// {interfaceName}", out _, ignoreLeadingSpaces: true);
             Debug.Assert(locatorCommentExists);
 
+            WriteInterfaceBody(hpp, interfaceName, isCallback);
+
+            Output.WriteLine("}");
+            Output.WriteLine();
+        }
+
+        private void WriteInterfaceBody(TextReader hpp, ReadOnlySpan<char> interfaceName, bool isCallback)
+        {
             ReadOnlySpan<char> methodName = default;
 
-            while (hpp.Peek() > -1)
+            while (hpp.ReadLine() is string fullLine)
             {
-                fullLine = hpp.ReadLine()!;
-                line = fullLine.AsSpan().Trim();
+                var line = fullLine.AsSpan().Trim();
 
                 if (methodName.IsEmpty)
                 {
@@ -944,9 +949,6 @@ namespace SrcGen
                     }
                 }
             }
-
-            Output.WriteLine("}");
-            Output.WriteLine();
         }
 
         private static bool IsPointerType(ReadOnlySpan<char> nativeType)
