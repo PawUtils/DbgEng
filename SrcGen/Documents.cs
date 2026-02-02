@@ -183,11 +183,11 @@ public partial class Documents
         if ((nextLine is null || !nextLine.StartsWith(returnsHeader))
             && reader.TrySeekLine(memberHeader, out nextLine, ignoreLeadingSpaces: true, returnsHeader))
         {
-            var lookup = Parameters.GetAlternateLookup<ReadOnlySpan<char>>();
+            var parametersByFunction = Parameters.GetAlternateLookup<ReadOnlySpan<char>>();
 
-            if (!lookup.TryGetValue(functionName, out var parameters))
+            if (!parametersByFunction.TryGetValue(functionName, out var parameters))
             {
-                lookup[functionName] = parameters = [];
+                parametersByFunction[functionName] = parameters = [];
             }
 
             bool more;
@@ -203,10 +203,10 @@ public partial class Documents
 
         if (nextLine?.StartsWith(returnsHeader) == true || reader.TrySeekLine(returnsHeader, out _))
         {
-            var lookup1 = ReturnCodes.GetAlternateLookup<ReadOnlySpan<char>>();
-            if (!lookup1.TryGetValue(functionName, out var codesSet))
+            var codesByFunction = ReturnCodes.GetAlternateLookup<ReadOnlySpan<char>>();
+            if (!codesByFunction.TryGetValue(functionName, out var codesSet))
             {
-                lookup1[functionName] = codesSet = [];
+                codesByFunction[functionName] = codesSet = [];
             }
 
             var codes = codesSet.GetAlternateLookup<ReadOnlySpan<char>>();
