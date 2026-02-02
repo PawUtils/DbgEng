@@ -743,7 +743,7 @@ public class DocumentTests : TestsBase
                 /// </param>
                 void Boom
                 (
-                    // _In_
+                    // _In_ UINT32
                     UINT32 Flags,
                     // ...
                     [In, MarshalUsing(typeof(ComVariantMarshaller), ElementIndirectionDepth = 1)]
@@ -868,7 +868,7 @@ public class DocumentTests : TestsBase
                 [PreserveSig]
                 HRESULT Boom
                 (
-                    // _In_
+                    // _In_ UINT32
                     UINT32 Flags
                 );
 
@@ -929,7 +929,7 @@ public class DocumentTests : TestsBase
                 /// </param>
                 void Boom
                 (
-                    // _Out_
+                    // _Out_ PUINT32
                     out UINT32 Flags
                 );
 

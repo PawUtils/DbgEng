@@ -810,7 +810,7 @@ namespace SrcGen
                         }
 
                         WriteIndent(2);
-                        Output.WriteLine($"// {line[..annotationLength]}");
+                        Output.Write($"// {line[..annotationLength]}");
 
                         line = line[annotationLength..].TrimStart();
 
@@ -822,8 +822,9 @@ namespace SrcGen
                         }
 
                         var nativeType = line[..line.IndexOfAny(" *")];
-
                         Debug.Assert(!nativeType.IsEmpty);
+
+                        Output.WriteLine($" {nativeType}");
 
                         var pointerIndirections = 0;
                         if (IsPointerType(nativeType))

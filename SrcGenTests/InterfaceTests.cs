@@ -291,7 +291,7 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _In_opt_
+                    // _In_opt_ PSOME_INTERFACE
                     ISomeInterface Name
                 );
 
@@ -325,7 +325,7 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _In_opt_
+                    // _In_opt_ PULONG
                     in ULONG Name
                 );
 
@@ -359,7 +359,7 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _In_opt_
+                    // _In_opt_ LPGUID
                     in GUID Name
                 );
 
@@ -399,7 +399,7 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _In_opt_
+                    // _In_opt_ PDEBUG_OFFSET_REGION
                     in DebugOffsetRegion Name
                 );
 
@@ -439,7 +439,7 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _Inout_opt_
+                    // _Inout_opt_ PULONG
                     ref ULONG Name
                 );
 
@@ -473,7 +473,7 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _Out_
+                    // _Out_ PSOME_INTERFACE
                     out ISomeInterface Name
                 );
 
@@ -507,7 +507,7 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _Out_
+                    // _Out_ PGUID
                     out GUID Name
                 );
 
@@ -576,13 +576,13 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _In_
+                    // _In_ PSTR
                     [MarshalAs(UnmanagedType.LPStr)]
                     string Id,
-                    // _In_opt_
+                    // _In_opt_ PCSTR
                     [MarshalAs(UnmanagedType.LPStr)]
                     string Name,
-                    // _Out_writes_opt_(2)
+                    // _Out_writes_opt_(2) PSTR
                     Span<byte> Name1
                 );
 
@@ -618,13 +618,13 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _In_
+                    // _In_ PWSTR
                     [MarshalAs(UnmanagedType.LPWStr)]
                     string Id,
-                    // _In_opt_
+                    // _In_opt_ PCWSTR
                     [MarshalAs(UnmanagedType.LPWStr)]
                     string Name,
-                    // _Out_writes_opt_(4)
+                    // _Out_writes_opt_(4) PWSTR
                     Span<char> Name1
                 );
 
@@ -660,10 +660,10 @@ public class InterfaceTests : TestsBase
             {
                 void Boom
                 (
-                    // _In_reads_bytes_(ContextSize)
+                    // _In_reads_bytes_(ContextSize) PVOID
                     [MarshalUsing(typeof(BufferMarshaller<,>), CountElementName = "ContextSize")]
                     ReadOnlySpan<byte> Context,
-                    // _In_
+                    // _In_ ULONG
                     ULONG ContextSize
                 );
 
