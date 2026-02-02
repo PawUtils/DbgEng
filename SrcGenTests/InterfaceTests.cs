@@ -292,7 +292,7 @@ public class InterfaceTests : TestsBase
                 void Boom
                 (
                     // _In_opt_ PSOME_INTERFACE
-                    ISomeInterface Name
+                    ISomeInterface? Name
                 );
 
             }
@@ -532,6 +532,40 @@ public class InterfaceTests : TestsBase
     }
 
     [Fact]
+    public void TestPointerParam8()
+    {
+        AssertGeneratedWithMissing("""
+            [GeneratedComInterface(Options = ComInterfaceOptions.ComObjectWrapper)]
+            [Guid("f2df5f53-071f-47bd-9de6-5734c3fed689")]
+            public partial interface ISomeInterface
+            {
+                void Boom
+                (
+                    // _Out_opt_ PGUID
+                    ref GUID Name
+                );
+
+            }
+            """,
+            hppSrc: """
+            typedef interface DECLSPEC_UUID("f2df5f53-071f-47bd-9de6-5734c3fed689")
+                ISomeInterface* PSOME_INTERFACE;
+
+            #undef INTERFACE
+            #define INTERFACE ISomeInterface
+            DECLARE_INTERFACE_(ISomeInterface, IUnknown)
+            {
+                // ISomeInterface.
+                STDMETHOD(Boom)(
+                    THIS_
+                    _Out_opt_ PGUID Name
+                    ) PURE;
+            };
+            """,
+            "");
+    }
+
+    [Fact]
     public void TestDotDotDotParam1()
     {
         AssertGeneratedWithMissing("""
@@ -581,7 +615,7 @@ public class InterfaceTests : TestsBase
                     string Id,
                     // _In_opt_ PCSTR
                     [MarshalAs(UnmanagedType.LPStr)]
-                    string Name,
+                    string? Name,
                     // _Out_writes_opt_(2) PSTR
                     Span<byte> Name1
                 );
@@ -623,7 +657,7 @@ public class InterfaceTests : TestsBase
                     string Id,
                     // _In_opt_ PCWSTR
                     [MarshalAs(UnmanagedType.LPWStr)]
-                    string Name,
+                    string? Name,
                     // _Out_writes_opt_(4) PWSTR
                     Span<char> Name1
                 );

@@ -19,6 +19,7 @@ namespace SrcGen
             
             namespace Interop.DbgEng;
 
+            #nullable enable
             #pragma warning disable CS1591
             
             """;
@@ -863,7 +864,7 @@ namespace SrcGen
                                     managedType = (isIn, isOut) switch
                                     {
                                         (true, false) => $"in {managedType}",
-                                        (false, true) => $"out {managedType}",
+                                        (false, true) => mayBeDefault ? $"ref {managedType}" : $"out {managedType}",
                                         (true, true) => $"ref {managedType}",
                                         _ => throw new UnreachableException()
                                     };
@@ -888,6 +889,14 @@ namespace SrcGen
                                             break;
                                         default:
                                             break;
+                                    }
+                                }
+
+                                if (isIn && !isOut && mayBeDefault)
+                                {
+                                    if (!isValueType)
+                                    {
+                                        managedType += '?';
                                     }
                                 }
                             }
