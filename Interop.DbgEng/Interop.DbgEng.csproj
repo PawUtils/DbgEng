@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Debugging.Platform.DbgEng" Version="20260109.1235.0" />
-    <PackageReference Include="Microsoft.Debugging.Platform.SymSrv" Version="20260109.1235.0" />
+    <PackageReference PrivateAssets="All" Include="Microsoft.Debugging.Platform.DbgEng" Version="20260109.1235.0" />
+    <PackageReference PrivateAssets="All" Include="Microsoft.Debugging.Platform.SymSrv" Version="20260109.1235.0" />
   </ItemGroup>
 
   <ItemGroup>
