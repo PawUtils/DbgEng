@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference PrivateAssets="All" Include="Microsoft.Debugging.Platform.DbgEng" Version="20260109.1235.0" />
-    <PackageReference PrivateAssets="All" Include="Microsoft.Debugging.Platform.SymSrv" Version="20260109.1235.0" />
+    <PackageReference PrivateAssets="All" Include="Microsoft.Debugging.Platform.DbgEng" Version="20260319.1511.0" />
+    <PackageReference PrivateAssets="All" Include="Microsoft.Debugging.Platform.SymSrv" Version="20260319.1511.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,8 +63,8 @@
       <SrcGenOutput>$(IntermediateOutputPath)DbgEng.g.cs</SrcGenOutput>
     </PropertyGroup>
   </Target>
-  <Target Name="GenSrc" DependsOnTargets="ResolveReferences" BeforeTargets="BeforeCompile" Inputs="$(SrcGenDll);@(None->HasMetadata('SrcGenInput'))" Outputs="$(SrcGenOutput)">
-    <Exec Command="dotnet exec &quot;$(SrcGenDll)&quot; &quot;@(None->WithMetadataValue('SrcGenInput','dbgeng.h'))&quot; &quot;@(None->WithMetadataValue('SrcGenInput','missing.h'))&quot; &quot;$(SrcGenOutput)&quot; &quot;$(MicrosoftDocs)&quot;" />
+  <Target Name="GenSrc" DependsOnTargets="ResolveReferences" BeforeTargets="BeforeCompile" Inputs="$(SrcGenDll);@(None-&gt;HasMetadata('SrcGenInput'))" Outputs="$(SrcGenOutput)">
+    <Exec Command="dotnet exec &quot;$(SrcGenDll)&quot; &quot;@(None-&gt;WithMetadataValue('SrcGenInput','dbgeng.h'))&quot; &quot;@(None-&gt;WithMetadataValue('SrcGenInput','missing.h'))&quot; &quot;$(SrcGenOutput)&quot; &quot;$(MicrosoftDocs)&quot;" />
     <ItemGroup>
       <Compile Include="$(SrcGenOutput)" />
       <FileWrites Include="$(SrcGenOutput)" />
