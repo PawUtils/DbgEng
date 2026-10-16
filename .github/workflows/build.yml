@@ -22,4 +22,4 @@ jobs:
       - name: Build
         run: dotnet build -c ${{ matrix.conf }}
       - name: Test
-        run: dotnet test -c ${{ matrix.conf }} --no-build
+        run: dotnet run -c ${{ matrix.conf }} --no-build --project SrcGenTests/SrcGenTests.csproj
