@@ -3,6 +3,10 @@
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
   </Folder>
+  <Folder Name="/Solution Items/Workflows/">
+    <File Path=".github/workflows/build.yml" />
+    <File Path=".github/workflows/nuget.yml" />
+  </Folder>
   <Project Path="Interop.DbgEng/Interop.DbgEng.csproj" Id="c357d88c-6b68-498e-b44a-15692c159743">
     <BuildDependency Project="SrcGen/SrcGen.csproj" />
   </Project>
